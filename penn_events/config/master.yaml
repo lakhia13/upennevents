@@ -28,6 +28,25 @@
 #      assuming it, though -- it is not guaranteed the way #1 is.
 # Before adding a feeder for a URL that looks like a gap, check whether it's
 # actually one of these two cases first.
+#
+# `datacenter-ip-blocked` tag (2026-09-07): all 16 playwright_html feeders below
+# work correctly run from here -- a real headless browser executing an ordinary
+# Cloudflare "managed" JS challenge, same honest identity throughout, no
+# evasion. They do NOT work from GitHub Actions: confirmed live (screenshot
+# evidence in a workflow run's `playwright-debug` artifact) that Cloudflare
+# escalates GitHub's well-known datacenter IP ranges to an *interactive*
+# Turnstile checkbox instead of the silent challenge -- a fundamentally
+# different mechanism a stock browser cannot pass regardless of wait time
+# (confirmed: tripling wait_ms and capping concurrent launches changed nothing,
+# 16/16 failed identically both times). Clicking through Turnstile
+# programmatically would be evading a deliberate human-verification control,
+# which is out of scope by this project's own standing rule -- not something to
+# route around with a proxy or similar. So these are tagged and excluded from
+# the scheduled CI workflow (see .github/workflows/scrape.yml's --exclude-tag)
+# rather than silently failing there every run. They still run normally via
+# docker-compose or any manual `run-all` from a non-datacenter network -- run
+# them periodically from local dev, or via a future self-hosted CI runner on
+# residential infrastructure, if this coverage needs to stay fresh.
 
 version: 1
 
@@ -303,7 +322,7 @@ feeders:
     type: playwright_html
     registry_url: https://penntoday.upenn.edu/events
     host: University
-    tags: [university-wide]
+    tags: [university-wide, datacenter-ip-blocked]
     config:
       list_url: https://penntoday.upenn.edu/events
       wait_selector: "article.event-card"
@@ -320,7 +339,7 @@ feeders:
     type: playwright_html
     registry_url: https://www.asc.upenn.edu/news-events/events
     host: Annenberg School for Communication
-    tags: [communication]
+    tags: [communication, datacenter-ip-blocked]
     config:
       list_url: https://www.asc.upenn.edu/news-events/events
       wait_selector: "div.card--event"
@@ -351,7 +370,7 @@ feeders:
     type: playwright_html
     registry_url: https://www.library.upenn.edu/events
     host: Penn Libraries
-    tags: [libraries]
+    tags: [libraries, datacenter-ip-blocked]
     config:
       list_url: https://www.library.upenn.edu/events
       wait_selector: "article.listing-card.event"
@@ -389,7 +408,7 @@ feeders:
     type: playwright_html
     registry_url: https://hss.sas.upenn.edu/events
     host: History and Sociology of Science
-    tags: [arts-and-sciences]
+    tags: [arts-and-sciences, datacenter-ip-blocked]
     config:
       list_url: https://hss.sas.upenn.edu/events
       wait_selector: ".events-listing.views-row"
@@ -404,7 +423,7 @@ feeders:
     type: playwright_html
     registry_url: https://figs.sas.upenn.edu/events
     host: French, Italian & Germanic Studies
-    tags: [arts-and-sciences]
+    tags: [arts-and-sciences, datacenter-ip-blocked]
     config:
       list_url: https://figs.sas.upenn.edu/events
       wait_selector: ".events-listing.views-row"
@@ -419,7 +438,7 @@ feeders:
     type: playwright_html
     registry_url: https://theatre.sas.upenn.edu/events
     host: Theatre Arts
-    tags: [arts-and-sciences, arts]
+    tags: [arts-and-sciences, arts, datacenter-ip-blocked]
     config:
       list_url: https://theatre.sas.upenn.edu/events
       wait_selector: ".events-listing.views-row"
@@ -437,7 +456,7 @@ feeders:
     type: playwright_html
     registry_url: https://casi.sas.upenn.edu/events
     host: Center for the Advanced Study of India
-    tags: [arts-and-sciences, research-center]
+    tags: [arts-and-sciences, research-center, datacenter-ip-blocked]
     config:
       list_url: https://casi.sas.upenn.edu/events
       wait_selector: ".views-field-title"
@@ -458,7 +477,7 @@ feeders:
     type: playwright_html
     registry_url: https://psychology.sas.upenn.edu/events
     host: Psychology
-    tags: [arts-and-sciences]
+    tags: [arts-and-sciences, datacenter-ip-blocked]
     config:
       list_url: https://psychology.sas.upenn.edu/events
       wait_selector: 'div[data-component-id="sas_theme:card_event"]'
@@ -474,7 +493,7 @@ feeders:
     type: playwright_html
     registry_url: https://www.southasiacenter.upenn.edu/events
     host: South Asia Center
-    tags: [arts-and-sciences, research-center]
+    tags: [arts-and-sciences, research-center, datacenter-ip-blocked]
     config:
       list_url: https://www.southasiacenter.upenn.edu/events
       wait_selector: 'div[data-component-id="sas_theme:card_event"]'
@@ -490,7 +509,7 @@ feeders:
     type: playwright_html
     registry_url: https://gsws.sas.upenn.edu/events
     host: Gender, Sexuality, and Women's Studies
-    tags: [arts-and-sciences]
+    tags: [arts-and-sciences, datacenter-ip-blocked]
     config:
       list_url: https://gsws.sas.upenn.edu/events
       wait_selector: 'div[data-component-id="sas_theme:card_event"]'
@@ -510,7 +529,7 @@ feeders:
     type: playwright_html
     registry_url: https://watercenter.sas.upenn.edu/events/
     host: The Water Center at Penn
-    tags: [arts-and-sciences, research-center]
+    tags: [arts-and-sciences, research-center, datacenter-ip-blocked]
     config:
       list_url: https://watercenter.sas.upenn.edu/events/
       wait_selector: ".events-listing.views-row"
@@ -530,7 +549,7 @@ feeders:
     type: playwright_html
     registry_url: https://ceet.upenn.edu/events/
     host: Center of Excellence in Environmental Toxicology
-    tags: [medicine, research-center]
+    tags: [medicine, research-center, datacenter-ip-blocked]
     config:
       list_url: https://ceet.upenn.edu/events/
       wait_selector: "article.event-card"
@@ -553,7 +572,7 @@ feeders:
     type: playwright_html
     registry_url: https://global.upenn.edu/isss/events
     host: International Student and Scholar Services
-    tags: [global]
+    tags: [global, datacenter-ip-blocked]
     config:
       list_url: https://global.upenn.edu/isss/events
       wait_selector: ".card--dynamic"
@@ -568,7 +587,7 @@ feeders:
     type: playwright_html
     registry_url: https://global.upenn.edu/pennabroad/events/
     host: Penn Abroad
-    tags: [global]
+    tags: [global, datacenter-ip-blocked]
     config:
       list_url: https://global.upenn.edu/pennabroad/events/
       wait_selector: ".card--dynamic"
@@ -583,7 +602,7 @@ feeders:
     type: playwright_html
     registry_url: https://pci.upenn.edu/events/
     host: Penn Center for Innovation
-    tags: [university-wide]
+    tags: [university-wide, datacenter-ip-blocked]
     config:
       list_url: https://pci.upenn.edu/events/
       wait_selector: ".ep-event-list-item"
@@ -598,7 +617,7 @@ feeders:
     type: playwright_html
     registry_url: https://snfpaideia.upenn.edu/engage/events/
     host: SNF Paideia Program
-    tags: [university-wide]
+    tags: [university-wide, datacenter-ip-blocked]
     config:
       list_url: https://snfpaideia.upenn.edu/engage/events/
       wait_selector: ".c-entry-card"

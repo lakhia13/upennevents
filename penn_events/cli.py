@@ -113,6 +113,15 @@ def run_one(
 def run_all_command(
     config_path: str = typer.Option(None, "--config", "-c"),
     feeder_id: list[str] = typer.Option(None, "--feeder-id", help="Restrict to these feeder ids"),
+    exclude_tag: list[str] = typer.Option(
+        None,
+        "--exclude-tag",
+        help=(
+            "Skip feeders carrying any of these tags. Used to keep environment-"
+            "specific gaps (e.g. 'datacenter-ip-blocked') out of a run without "
+            "disabling the feeder for other environments -- see master.yaml."
+        ),
+    ),
     concurrency: int = typer.Option(8, "--concurrency"),
     max_failures: int = typer.Option(
         0,
@@ -130,7 +139,12 @@ def run_all_command(
     _setup_logging(verbose)
     config = load_config(config_path)
     reports = asyncio.run(
-        run_all(config, feeder_ids=feeder_id or None, max_concurrency=concurrency)
+        run_all(
+            config,
+            feeder_ids=feeder_id or None,
+            exclude_tags=exclude_tag or None,
+            max_concurrency=concurrency,
+        )
     )
 
     failures = 0

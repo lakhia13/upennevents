@@ -37,42 +37,26 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Chromium is ~150MB and slow to download; key the cache on the pinned
-      # playwright version so a version bump busts it automatically.
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
-
-      - name: Install Chromium
-        # --with-deps installs OS libraries too, which the cache above does not
-        # cover, so it still runs on a cache hit -- just without the download.
-        run: playwright install --with-deps chromium
-
+      # No Playwright/Chromium install here: every playwright_html feeder in
+      # master.yaml is currently tagged datacenter-ip-blocked (2026-09-07) and
+      # excluded below, so nothing in this run needs a browser. Confirmed live
+      # via a workflow-run screenshot: Cloudflare serves GitHub's well-known
+      # datacenter IP ranges an interactive Turnstile checkbox instead of the
+      # silent challenge that works from local dev, and no wait time or
+      # concurrency change gets a stock browser past that -- see the
+      # `datacenter-ip-blocked` comment in master.yaml for the full account.
+      # If a future playwright_html feeder is added WITHOUT that tag, restore
+      # the Chromium install steps (see git history on this file) before it can
+      # run here.
       - name: Run all feeders
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           LOG_LEVEL: INFO
-          # Best-effort HTML + screenshot dump from playwright_html on any
-          # wait/navigation failure (see feeders/playwright_html.py's
-          # _dump_debug) -- costs nothing on success, and is what actually shows
-          # what a headless browser saw here vs. locally when a whole class of
-          # feeder fails uniformly.
-          PLAYWRIGHT_DEBUG_DIR: ${{ runner.temp }}/playwright-debug
-        # Tolerate a couple of failures: these are ~68 third-party university
-        # sites, and one being down for a few hours is normal, not a broken
-        # pipeline. Everything that succeeded still landed. Anything worse than
-        # this fails the run loudly.
+        # Tolerate a couple of failures: these are ~52 third-party university
+        # sites (the 16 datacenter-ip-blocked ones are excluded, not just
+        # tolerated -- they'd fail every single run, which would mask a real
+        # new failure among the rest), and one being down for a few hours is
+        # normal. Everything that succeeded still landed either way.
         run: |
-          python -m penn_events.cli run-all --concurrency 8 --max-failures 5
-
-      - name: Upload playwright debug artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-debug
-          path: ${{ runner.temp }}/playwright-debug
-          if-no-files-found: ignore
-          retention-days: 3
+          python -m penn_events.cli run-all --concurrency 8 --max-failures 3 \
+            --exclude-tag datacenter-ip-blocked

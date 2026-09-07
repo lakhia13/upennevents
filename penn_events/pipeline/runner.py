@@ -134,7 +134,11 @@ async def run_feeder(
 
 
 async def run_all(
-    config: "MasterConfig", *, feeder_ids: list[str] | None = None, max_concurrency: int = 8
+    config: "MasterConfig",
+    *,
+    feeder_ids: list[str] | None = None,
+    exclude_tags: list[str] | None = None,
+    max_concurrency: int = 8,
 ) -> list[RunReport]:
     """Run every enabled feeder (or a chosen subset) concurrently.
 
@@ -148,6 +152,12 @@ async def run_all(
         missing = wanted - {s.id for s in specs}
         if missing:
             log.warning("requested feeder ids not found or disabled: %s", sorted(missing))
+    if exclude_tags:
+        excluded = set(exclude_tags)
+        skipped = [s.id for s in specs if excluded & set(s.tags)]
+        if skipped:
+            log.info("skipping %d feeder(s) tagged %s: %s", len(skipped), sorted(excluded), sorted(skipped))
+        specs = [s for s in specs if not (excluded & set(s.tags))]
 
     tagger = Tagger()
     semaphore = asyncio.Semaphore(max_concurrency)

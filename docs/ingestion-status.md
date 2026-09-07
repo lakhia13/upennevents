@@ -11,6 +11,7 @@ carries the live reasoning/citations behind every decision below.
 |---|---|
 | Registry rows (`docs/penn-calendars.csv` → `calendars` table) | 511 |
 | Feeders configured in `master.yaml` | 68 (33 explicit + 1 generator expanding to 31 Athletics feeds) |
+| Feeders in the scheduled CI run | 52 (16 tagged `datacenter-ip-blocked`, excluded — see Deployment) |
 | Feeders currently yielding events | 66 (2 configured feeders return 0 events right now — see below) |
 | Active events in the database | 2,251 |
 | Removed events (upstream deleted, kept as history) | 238 |
@@ -56,6 +57,14 @@ Production runs on free tiers, with no always-on container:
 The scrape is a batch job (~5 minutes, 4×/day), not a service, so it runs as CI
 rather than as a container. Free container tiers spin down when idle, which would
 silently stop an in-container scheduler from ever firing.
+
+**The scheduled run covers 52 of the 68 feeders, not all of them.** The 16
+`playwright_html` feeders are tagged `datacenter-ip-blocked` and excluded via
+`--exclude-tag` — see blocking mechanism #4 below. They're not broken; they just
+can't pass Cloudflare's challenge from GitHub's datacenter IP ranges. They still
+run correctly with a plain `docker compose run ... run-all` (no exclude flag)
+from any residential network, so refresh that slice manually/locally when it
+needs to stay current.
 
 **Two things to know before touching the database:**
 
@@ -194,15 +203,18 @@ losing data.
 
 ## Blocking mechanisms encountered (and how each was handled)
 
-Three structurally different HTTP-403 causes were found and diagnosed
-separately — never with UA spoofing or impersonation:
+Four structurally different blocking mechanisms were found and diagnosed
+separately — never with UA spoofing, impersonation, or defeating a human-
+verification control:
 
 1. **Cloudflare "managed" JS challenge** (`cType: 'managed'`) — Penn Today,
    Annenberg, the SAS Drupal cluster, CEET, Penn Global, PCI, SNF Paideia, Penn
    Libraries, and ~45 more candidates found but not yet wired. Solved with a
    real headless Chromium browser (`playwright_html`) presenting our honest
    `PennEventsBot` identity and executing the actual challenge JS — not
-   evasion, since nothing about our automated identity is hidden.
+   evasion, since nothing about our automated identity is hidden, and any
+   ordinary browser passes the same way. **This only holds from a residential
+   IP** — see #4.
 2. **nginx/WAF keyword false positive** — Almanac blocks any UA containing a
    `(+http...)`-style contact URL, contradicted by the site's own permissive
    `robots.txt`. Solved with a per-feeder UA override that drops only the
@@ -214,6 +226,26 @@ separately — never with UA spoofing or impersonation:
    challenge page at all. This is an IP/ASN-level block, not bot detection —
    there is no legitimate client-side fix, so these are explicitly left
    unaddressed rather than worked around.
+4. **Cloudflare interactive Turnstile, escalated for datacenter IPs** —
+   discovered in production (2026-09-07): all 16 `playwright_html` feeders,
+   which work correctly from local dev, failed uniformly when run from GitHub
+   Actions. Screenshot evidence (captured via a debug artifact — see
+   `feeders/playwright_html.py`'s `_dump_debug`) showed every one landed on a
+   "Verify you are human" checkbox, not the silent challenge #1 describes.
+   Cloudflare risk-scores by network origin and escalates well-known
+   datacenter ASNs (GitHub's Azure ranges included) to this interactive tier;
+   confirmed it isn't a timing issue by tripling the wait budget and capping
+   concurrent browser launches — 16/16 failed identically both times.
+   Programmatically clicking a Turnstile checkbox would defeat a control
+   whose entire purpose is proving a human is present, which is outside this
+   project's standing no-evasion rule, not a gray area within it. **Resolution:
+   these 16 feeders are tagged `datacenter-ip-blocked` in `master.yaml` and
+   excluded from the scheduled GitHub Actions workflow** (`--exclude-tag
+   datacenter-ip-blocked`, in `.github/workflows/scrape.yml`) rather than
+   failing on every run. They still work normally via `docker-compose` or any
+   manual run from a residential network — refresh them periodically from
+   local dev, or via a future self-hosted CI runner on non-datacenter
+   infrastructure, if this slice of coverage needs to stay current.
 
 ## Registry rows deliberately not wired (confirmed redundant, not just skipped)
 
