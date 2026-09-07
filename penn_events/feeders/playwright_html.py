@@ -15,9 +15,12 @@ only the transport differs from `html_css`, not the parsing.
 from __future__ import annotations
 
 import asyncio
+import logging
+import os
+from pathlib import Path
 from typing import AsyncIterator
 
-from playwright.async_api import async_playwright
+from playwright.async_api import Page, async_playwright
 
 from penn_events.core.http import HttpClient
 from penn_events.core.interfaces import Adapter, Feeder
@@ -25,6 +28,8 @@ from penn_events.core.models import RawRecord
 from penn_events.feeders.html_css import HtmlCssConfig
 
 from .factory import register_feeder
+
+log = logging.getLogger(__name__)
 
 # `run_all`'s own semaphore (core/../pipeline/runner.py) caps *all* feeders
 # together (default 8), with no distinction between a cheap httpx GET and a full
@@ -66,19 +71,44 @@ class PlaywrightHtmlFeeder(Feeder):
                 browser = await pw.chromium.launch(headless=True)
                 try:
                     page = await browser.new_page(user_agent=self.http.user_agent)
-                    await page.goto(
+                    response = await page.goto(
                         self.config.list_url,
                         wait_until="domcontentloaded",
                         timeout=self.config.nav_timeout_ms,
                     )
-                    if self.config.wait_selector:
-                        await page.wait_for_selector(self.config.wait_selector, timeout=self.config.wait_ms)
-                    else:
-                        await page.wait_for_timeout(self.config.wait_ms)
+                    try:
+                        if self.config.wait_selector:
+                            await page.wait_for_selector(self.config.wait_selector, timeout=self.config.wait_ms)
+                        else:
+                            await page.wait_for_timeout(self.config.wait_ms)
+                    except Exception:
+                        status = response.status if response else None
+                        log.warning("%s: nav status %s before wait failed", self.id, status)
+                        await self._dump_debug(page)
+                        raise
                     html = await page.content()
                 finally:
                     await browser.close()
         yield RawRecord(format="html", url=self.config.list_url, payload=html)
+
+    async def _dump_debug(self, page: Page) -> None:
+        """Best-effort capture of what the browser actually saw, gated on an env
+        var so this never runs (or costs anything) outside CI debugging. Added
+        after a production failure where every playwright_html feeder timed out
+        identically regardless of wait time -- distinguishing "still shows a
+        Cloudflare challenge" from "loaded something else entirely" needs to see
+        the real page, not just the exception."""
+        debug_dir = os.environ.get("PLAYWRIGHT_DEBUG_DIR")
+        if not debug_dir:
+            return
+        try:
+            out = Path(debug_dir)
+            out.mkdir(parents=True, exist_ok=True)
+            html = await page.content()
+            (out / f"{self.id}.html").write_text(html, encoding="utf-8")
+            await page.screenshot(path=str(out / f"{self.id}.png"), full_page=True)
+        except Exception:
+            log.warning("%s: debug capture itself failed", self.id, exc_info=True)
 
     def adapter(self) -> Adapter:
         from penn_events.adapters.html_adapter import HtmlCssAdapter

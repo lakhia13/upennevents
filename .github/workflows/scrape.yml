@@ -55,9 +55,24 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           LOG_LEVEL: INFO
+          # Best-effort HTML + screenshot dump from playwright_html on any
+          # wait/navigation failure (see feeders/playwright_html.py's
+          # _dump_debug) -- costs nothing on success, and is what actually shows
+          # what a headless browser saw here vs. locally when a whole class of
+          # feeder fails uniformly.
+          PLAYWRIGHT_DEBUG_DIR: ${{ runner.temp }}/playwright-debug
         # Tolerate a couple of failures: these are ~68 third-party university
         # sites, and one being down for a few hours is normal, not a broken
         # pipeline. Everything that succeeded still landed. Anything worse than
         # this fails the run loudly.
         run: |
           python -m penn_events.cli run-all --concurrency 8 --max-failures 5
+
+      - name: Upload playwright debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-debug
+          path: ${{ runner.temp }}/playwright-debug
+          if-no-files-found: ignore
+          retention-days: 3
