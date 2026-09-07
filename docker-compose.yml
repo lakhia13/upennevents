@@ -54,13 +54,15 @@ services:
       PGRST_DB_SCHEMA: api
       PGRST_DB_ANON_ROLE: web_anon
       # Forces pagination -- without a cap a client could request the whole
-      # events table in a single call. 2000 is comfortably above the full
-      # 511-calendar registry's eventual event volume (208 active events with
-      # only 9 feeders wired as of 2026-09-07; this is a hard ceiling PostgREST
-      # applies even when a client's own `limit` asks for more, so it silently
-      # truncates results once crossed -- raise it again if ingestion coverage
-      # grows past this).
-      PGRST_DB_MAX_ROWS: "2000"
+      # events table in a single call. This is a hard ceiling PostgREST applies
+      # even when a client's own `limit` asks for more, so it silently truncates
+      # results once crossed -- it has already had to be raised twice this
+      # project as feeder coverage grew (200 -> 2000 -> 5000, 2026-09-07;
+      # 2035 active events with 47 feeders wired). Raise it again if ingestion
+      # coverage grows past this, and prefer erring high -- a stale low cap here
+      # is what causes results to silently vanish from the frontend, not a loud
+      # error.
+      PGRST_DB_MAX_ROWS: "5000"
       PGRST_OPENAPI_MODE: follow-privileges
     ports:
       - "3001:3000"

@@ -54,6 +54,7 @@ class HttpClient:
         retries: int = 3,
         rate_limit_per_host: float = 0.5,
     ) -> None:
+        self.user_agent = user_agent
         self._retries = max(0, retries)
         self._min_interval = 1.0 / rate_limit_per_host if rate_limit_per_host > 0 else 0.0
         self._limiters: dict[str, _HostLimiter] = defaultdict(

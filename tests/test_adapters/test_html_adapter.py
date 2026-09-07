@@ -61,3 +61,21 @@ def test_multiple_field_collects_every_matching_tag(ctx):
     open_house = events["MSE Open House"]
     assert open_house.tags == ["Open House", "Undergraduate"]
     assert events["Faculty Colloquium"].tags == ["Colloquium"]
+
+
+def test_starts_time_field_is_recombined_with_a_date_only_starts_at(ctx):
+    """Penn Today/Annenberg-style cards: a date-only element plus a separate
+    'start-end' time range elsewhere in the card -- the adapter must recombine
+    them and take only the range's start for the time-of-day."""
+    config = HtmlCssConfig(
+        list_url="https://example.upenn.edu/events/",
+        item="article.event-teaser-split",
+        fields={
+            "event_name": FieldSelector(css="h3 a", attr="text"),
+            "starts_at": FieldSelector(css=".event-date", attr="text"),
+            "starts_time": FieldSelector(css=".event-time", attr="text"),
+        },
+    )
+    events = {e.event_name: e for e in HtmlCssAdapter(config).adapt(_record(), ctx)}
+    split = events["Split Date/Time Card"]
+    assert split.starts_at == dt.datetime(2026, 9, 20, 18, 0, tzinfo=dt.timezone.utc)  # 2pm EDT

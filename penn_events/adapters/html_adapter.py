@@ -8,6 +8,7 @@ later in `normalize.pipeline`, so this stays a thin field extractor.
 from __future__ import annotations
 
 import logging
+import re
 from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
@@ -23,6 +24,12 @@ if TYPE_CHECKING:
     from penn_events.feeders.html_css import FieldSelector, HtmlCssConfig
 
 log = logging.getLogger(__name__)
+
+
+def _first_range_token(raw: str) -> str:
+    """Card teasers often show a start-end time as one string ('12:00pm-1:00pm');
+    dateutil can't parse the range, so take the start."""
+    return re.split(r"\s*-\s*", raw.strip(), maxsplit=1)[0]
 
 
 def _extract(tag: Tag, field: "FieldSelector") -> list[str]:
@@ -62,6 +69,13 @@ class HtmlCssAdapter(Adapter):
         starts_raw = (values.get("starts_at") or [None])[0]
         if not name or not starts_raw:
             return None
+        starts_time_raw = (values.get("starts_time") or [None])[0]
+        if starts_time_raw:
+            # Some card layouts split the date and time-of-day into separate
+            # elements (e.g. a "Sep 09" date block plus a "12:00 p.m. - 12:05 p.m."
+            # time range elsewhere in the card) -- config declares both fields and
+            # they're recombined here before parsing.
+            starts_raw = f"{starts_raw} {_first_range_token(starts_time_raw)}"
         starts_at = parse_datetime(starts_raw, ctx.timezone)
         if starts_at is None:
             log.debug("%s: could not parse start time %r for %r", ctx.feeder_id, starts_raw, name)

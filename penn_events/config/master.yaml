@@ -206,19 +206,52 @@ feeders:
       url: https://almanac.upenn.edu/at-penn-calendar
       user_agent: "PennEventsMonitor/1.0 (contact: pranshav.lakhia@gmail.com)"
 
+  # --- Playwright: Penn Today and Annenberg both sit behind Cloudflare's        ---
+  # --- "managed" JS challenge (`cType: 'managed'` in the response body,         ---
+  # --- confirmed live 2026-09-07) -- a plain HTTP client 403s even sending an   ---
+  # --- exact Chrome UA, so unlike Almanac above this genuinely needs a real     ---
+  # --- browser, not a UA change. A stock headless Chromium (no stealth/         ---
+  # --- fingerprint-spoofing plugins, no navigator.webdriver patching -- see     ---
+  # --- feeders/playwright_html.py) executing the real challenge JS and waiting  ---
+  # --- for it to resolve passes cleanly, presenting our honest PennEventsBot    ---
+  # --- identity throughout. Reuses html_css's item/fields selector engine       ---
+  # --- (adapters/html_adapter.py's `starts_time` field: some cards split date   ---
+  # --- and time-of-day into separate elements) -- only the fetch differs.      ---
+  - id: penn-today-html
+    type: playwright_html
+    registry_url: https://penntoday.upenn.edu/events
+    host: University
+    tags: [university-wide]
+    config:
+      list_url: https://penntoday.upenn.edu/events
+      wait_selector: "article.event-card"
+      item: "article.event-card"
+      fields:
+        event_name: {css: ".c-text .title .shy", attr: text}
+        event_url: {css: "a.overlink", attr: href}
+        starts_at: {css: ".c-date", attr: text}
+        starts_time: {css: ".meta-list-item.event-time", attr: text}
+        location: {css: ".meta-list-item.location", attr: text}
+        description: {css: ".abstract", attr: text}
+
+  - id: annenberg-html
+    type: playwright_html
+    registry_url: https://www.asc.upenn.edu/news-events/events
+    host: Annenberg School for Communication
+    tags: [communication]
+    config:
+      list_url: https://www.asc.upenn.edu/news-events/events
+      wait_selector: "div.card--event"
+      item: "div.card--event"
+      fields:
+        event_name: {css: "h2.h4 a", attr: text}
+        event_url: {css: "h2.h4 a", attr: href}
+        starts_at: {css: "time.show-for-sr", attr: datetime}
+        starts_time: {css: "span.time", attr: text}
+        location: {css: "ul.locations li", attr: text}
+        description: {css: "p.medium-text", attr: text}
+
 # Deliberately not wired yet (each needs more than a plain HTTP GET to resolve):
-#
-#   - Penn Today (https://penntoday.upenn.edu/events) -- Drupal 11, but the host
-#     returns a Cloudflare interstitial to a plain client ("Just a moment...").
-#     Needs the Playwright feeder (plan phase 5) or a Cloudflare-aware fetch.
-#
-#   - Annenberg (https://www.asc.upenn.edu/news-events/events) -- also Cloudflare,
-#     but selectively: a plain `curl` UA gets a real 200 with real event markup,
-#     while our actual PennEventsBot UA (and a Chrome UA) gets a 403 with
-#     `cf-mitigated: challenge`. That is Cloudflare deliberately blocking
-#     bot-identifying traffic -- the fix is not to spoof a browser UA to get
-#     past it, it's the same Playwright/Cloudflare-aware-fetch work as Penn
-#     Today.
 #
 #   - Wharton's own www.wharton.upenn.edu/events/ registry row -- confirmed via
 #     view-source that the page is a Salesforce "EventsHQ" widget
