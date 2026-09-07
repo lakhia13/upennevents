@@ -1,0 +1,19 @@
+:root {
+  --penn-red: #990000;
+  --penn-red-dark: #7a0000;
+  --penn-red-tint: oklch(96% 0.03 25);
+  --penn-blue: #011f5b;
+  --ink: oklch(22% 0.01 60);
+  --ink-soft: oklch(40% 0.01 60);
+  --paper: oklch(98.5% 0.003 60);
+  --card: #ffffff;
+  --border: oklch(90% 0.006 60);
+  --border-strong: oklch(80% 0.006 60);
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+
+  /* Category colors (--cat-main/--cat-bg/--cat-solid) are NOT declared here:
+     with 16 real Penn schools/divisions (see lib/category.ts), they're
+     computed per-event by categoryCssVars() and applied as an inline style,
+     rather than hand-maintained as N CSS classes. */
+}

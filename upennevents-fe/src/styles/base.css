@@ -1,0 +1,53 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+a {
+  color: var(--penn-blue);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--penn-red);
+  text-decoration: underline;
+}
+button,
+input,
+select {
+  font-family: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--penn-red);
+  outline-offset: 2px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.brandbar {
+  height: 6px;
+  background: var(--penn-red);
+  flex-shrink: 0;
+}
