@@ -1,0 +1,82 @@
+# Master feeder configuration.
+#
+# Every entry here was checked with a live curl request while this file was
+# written (2026-09-06) -- not copied blindly from calendar_source_types.md, which
+# in a few cases turned out to be stale (SP2's TEC REST route is disabled; Penn
+# Today sits behind a Cloudflare challenge that blocks a plain HTTP client).
+#
+# `registry_url` must match a `Calendar URL` value in penn-calendars.csv exactly
+# (run `import-registry` before `run-all`, or these feeders log a warning and run
+# with no calendar_id / registry-derived tags).
+
+version: 1
+
+defaults:
+  timezone: America/New_York
+  user_agent: "PennEventsBot/1.0 (+https://github.com/upennevents; contact: pranshav.lakhia@gmail.com)"
+  timeout_seconds: 30
+  retries: 3
+  rate_limit_per_host: 0.5
+  horizon_days: 180
+  schedule: "0 */6 * * *"
+
+feeders:
+  # --- ICS: one implementation covers LiveWhale, VPUL, Trumba, TEC exports, ---
+  # --- CampusGroups and Drupal 7 /ics. Confirmed live below.                ---
+  - id: vpul-university-life
+    type: ics
+    registry_url: https://ulife.vpul.upenn.edu/calendar/
+    host: University Life
+    tags: [student-life]
+    config:
+      url: https://ulife.vpul.upenn.edu/calendar/ics/subscribe
+
+  # --- The Events Calendar REST API: the best-behaved format in the       ---
+  # --- registry. Confirmed live below; SP2 was tried and dropped (its     ---
+  # --- /wp-json/tribe/events/v1/events route 404s despite the CSV entry). ---
+  - id: engineering-tec
+    type: tec_rest
+    registry_url: https://events.engineering.upenn.edu/
+    host: Penn Engineering
+    tags: [engineering]
+    config:
+      base_url: https://events.engineering.upenn.edu
+      per_page: 50
+
+  - id: vet-tec
+    type: tec_rest
+    registry_url: https://www.vet.upenn.edu/about/penn-vet-events-calendar
+    host: Penn Vet
+    tags: [veterinary]
+    config:
+      base_url: https://www.vet.upenn.edu
+      per_page: 50
+
+  - id: faculty-senate-tec
+    type: tec_rest
+    registry_url: https://facultysenate.upenn.edu/events/
+    host: Faculty Senate
+    tags: [faculty, governance]
+    config:
+      base_url: https://facultysenate.upenn.edu
+      per_page: 50
+
+# Deliberately not wired yet (each needs more than a plain HTTP GET to resolve):
+#
+#   - Penn Today (https://penntoday.upenn.edu/events) -- Drupal 11, but the host
+#     returns a Cloudflare interstitial to a plain client ("Just a moment...").
+#     Needs the Playwright feeder (plan phase 5) or a Cloudflare-aware fetch.
+#
+#   - Almanac AT PENN (https://almanac.upenn.edu/at-penn-calendar) -- loads fine,
+#     but events sit inside nested Bootstrap accordion panels grouped by date,
+#     not a flat list of teasers. Needs selectors hand-tuned against the real
+#     panel structure before going in `html_css`, not guessed ones.
+#
+#   - PSOM LiveWhale (https://events.med.upenn.edu/all/) -- the page confirms
+#     `"webcal_feed_links":"true"` but the actual .ics URL is generated
+#     client-side by the Subscribe button's JS; every guessed URL pattern
+#     (`/all/list/?format=ics`, `/live/ics/...`, etc.) 404s or returns the HTML
+#     shell. Needs a browser probe to capture the real link, then generators
+#     can expand it across all ~37 PSOM groups in one block.
+
+generators: []

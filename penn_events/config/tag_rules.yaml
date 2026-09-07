@@ -1,0 +1,141 @@
+# Keyword -> tag rules, matched against event title + description + location.
+#
+# These are additive to the registry-derived tags (School/Division, Category) and
+# each feeder's static `tags:` in master.yaml -- see penn_events/normalize/tagger.py.
+# Patterns are case-insensitive regexes; keep them narrow enough to avoid false
+# positives (e.g. "MA" alone would over-match, so audience rules require a word
+# boundary and enough context).
+
+rules:
+  # --- Audience ---
+  graduate:
+    - '\bgraduate\b'
+    - '\bgrad student'
+    - '\bphd\b'
+    - '\bdoctoral\b'
+    - '\bpostdoc(?:toral)?\b'
+  undergraduate:
+    - '\bundergrad(?:uate)?\b'
+    - '\bfreshman\b|\bfreshmen\b'
+    - '\bfirst-year\b'
+  alumni:
+    - '\balumni?\b'
+    - '\bhomecoming\b'
+  faculty:
+    - '\bfaculty\b'
+  staff:
+    - '\bstaff\b'
+
+  # --- Format ---
+  seminar:
+    - '\bseminar\b'
+  lecture:
+    - '\blecture\b'
+    - '\bkeynote\b'
+    - '\bguest speaker\b'
+  workshop:
+    - '\bworkshop\b'
+    - '\bhands-on\b'
+  conference:
+    - '\bconference\b'
+    - '\bsymposium\b'
+  panel:
+    - '\bpanel discussion\b'
+    - '\bpanel\b'
+  exhibition:
+    - '\bexhibit(?:ion)?\b'
+    - '\bgallery\b'
+  performance:
+    - '\bperformance\b'
+    - '\bconcert\b'
+    - '\brecital\b'
+    - '\btheat(?:er|re)\b'
+  screening:
+    - '\bfilm screening\b'
+    - '\bscreening\b'
+  deadline:
+    - '\bdeadline\b'
+    - '\bdue date\b'
+    - '\bapplications? (?:open|close)\b'
+  fair:
+    - '\bcareer fair\b'
+    - '\bjob fair\b'
+    - '\bresource fair\b'
+  networking:
+    - '\bnetworking\b'
+    - '\bmeet ?(?:and|&) ?greet\b'
+  orientation:
+    - '\borientation\b'
+  commencement:
+    - '\bcommencement\b'
+    - '\bgraduation ceremony\b'
+  athletics:
+    - '\bvs\.?\s'
+    - '\bhome game\b'
+    - '\bmatch\b'
+
+  # --- Subject / discipline ---
+  biology:
+    - '\bbiology\b'
+    - '\bbiomedical\b'
+    - '\bgenomics?\b'
+    - '\bmicrobiology\b'
+  medicine:
+    - '\bclinical\b'
+    - '\bmedical\b'
+    - '\bhealth ?care\b'
+  neuroscience:
+    - '\bneuroscience\b'
+    - '\bneurology\b'
+  computer-science:
+    - '\bcomputer science\b'
+    - '\bmachine learning\b'
+    - '\bartificial intelligence\b|\bAI\b'
+  engineering:
+    - '\bengineering\b'
+    - '\brobotics\b'
+  business:
+    - '\bfinance\b'
+    - '\bentrepreneurship\b'
+    - '\bstartup\b'
+    - '\bmarketing\b'
+  law:
+    - '\blaw\b'
+    - '\blegal\b'
+  policy:
+    - '\bpublic policy\b'
+    - '\bpolicy\b'
+  fine-arts:
+    - '\bfine arts\b'
+    - '\bpainting\b'
+    - '\bsculpture\b'
+    - '\bstudio art\b'
+  music:
+    - '\bmusic\b'
+    - '\bchoir\b'
+    - '\borchestra\b'
+  literature:
+    - '\bpoetry\b'
+    - '\bliterature\b'
+    - '\bcreative writing\b'
+  history:
+    - '\bhistory\b'
+    - '\barchival\b'
+  religion:
+    - '\breligious?\b'
+    - '\bfaith\b'
+    - '\binterfaith\b'
+  sustainability:
+    - '\bsustainab(?:le|ility)\b'
+    - '\bclimate\b'
+  global:
+    - '\binternational\b'
+    - '\bglobal\b'
+  diversity-equity-inclusion:
+    - '\bdiversity\b'
+    - '\bequity\b'
+    - '\binclusion\b'
+  wellness:
+    - '\bwellness\b'
+    - '\bmindfulness\b'
+    - '\bmental health\b'

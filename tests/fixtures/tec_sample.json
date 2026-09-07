@@ -1,0 +1,536 @@
+{
+  "events": [
+    {
+      "id": 23169,
+      "global_id": "events.engineering.upenn.edu?id=23169",
+      "global_id_lineage": [
+        "events.engineering.upenn.edu?id=23169"
+      ],
+      "author": "13",
+      "status": "publish",
+      "date": "2026-06-24 16:20:26",
+      "date_utc": "2026-06-24 20:20:26",
+      "modified": "2026-08-26 17:33:57",
+      "modified_utc": "2026-08-26 21:33:57",
+      "url": "https://events.engineering.upenn.edu/event/meam-seminar-additive-manufacturing-of-electronic-skins-and-musculofascial-multifunctional-structures/",
+      "rest_url": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/events/23169",
+      "title": "MEAM Seminar: &#8220;Additive Manufacturing of Electronic Skins and Musculofascial Multifunctional Structures&#8221;",
+      "description": "<p>Materials of the future require burgeoning combinations of outstanding properties (e.g.\u2019s, mechanical, electrical, and stimuli-responsiveness). My talk will cover two broad examples of current and ongoing work from our group towards this effort. The first example will cover our work on designing liquid metal emulsions for 3D printed soft conductors and electrochemically active materials to form multifunctional electronic skins. We integrate the conductive emulsions in a hybrid manufacturing process to rapidly prototype wireless wearable haptics devices. We employ the electrochemically active emulsions for stretchable batteries and soft, self-powered keyboards. The second example highlights our work on developing new polymer composites that serve as synthetic musculofascial analogues for high stiffness, high toughness 4D printed electrically controllable multifunctional structures that detect and tolerate damage. The actuators formed by these materials generate stresses and specific forces that are larger than any other 3D printed actuators to date, with self-sensing and closed loop control capabilities, and can tolerate and detect damage from loads more than 10<sup>5</sup> time their own weight.</p>",
+      "excerpt": "",
+      "slug": "meam-seminar-additive-manufacturing-of-electronic-skins-and-musculofascial-multifunctional-structures",
+      "image": {
+        "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1.jpg",
+        "id": 23172,
+        "extension": "jpg",
+        "width": 600,
+        "height": 600,
+        "filesize": 50014,
+        "sizes": {
+          "medium": {
+            "width": 300,
+            "height": 300,
+            "mime-type": "image/jpeg",
+            "filesize": 10367,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-300x300.jpg"
+          },
+          "thumbnail": {
+            "width": 150,
+            "height": 150,
+            "mime-type": "image/jpeg",
+            "filesize": 4032,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-150x150.jpg"
+          },
+          "fullsize1200": {
+            "width": 600,
+            "height": 330,
+            "mime-type": "image/jpeg",
+            "filesize": 17004,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-600x330.jpg"
+          },
+          "square500": {
+            "width": 500,
+            "height": 500,
+            "mime-type": "image/jpeg",
+            "filesize": 21917,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-500x500.jpg"
+          },
+          "square300": {
+            "width": 300,
+            "height": 300,
+            "mime-type": "image/jpeg",
+            "filesize": 10367,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-300x300.jpg"
+          },
+          "600X400": {
+            "width": 400,
+            "height": 400,
+            "mime-type": "image/jpeg",
+            "filesize": 15450,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/06/Boley_Will_1_09.14.2018-600x600-1-400x400.jpg"
+          }
+        }
+      },
+      "all_day": false,
+      "start_date": "2026-09-08 10:15:00",
+      "start_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "08",
+        "hour": "10",
+        "minutes": "15",
+        "seconds": "00"
+      },
+      "end_date": "2026-09-08 11:15:00",
+      "end_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "08",
+        "hour": "11",
+        "minutes": "15",
+        "seconds": "00"
+      },
+      "utc_start_date": "2026-09-08 14:15:00",
+      "utc_start_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "08",
+        "hour": "14",
+        "minutes": "15",
+        "seconds": "00"
+      },
+      "utc_end_date": "2026-09-08 15:15:00",
+      "utc_end_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "08",
+        "hour": "15",
+        "minutes": "15",
+        "seconds": "00"
+      },
+      "timezone": "America/New_York",
+      "timezone_abbr": "EDT",
+      "cost": "",
+      "cost_details": {
+        "currency_symbol": "$",
+        "currency_code": "USD",
+        "currency_position": "prefix",
+        "values": []
+      },
+      "website": "",
+      "show_map": true,
+      "show_map_link": true,
+      "hide_from_listings": false,
+      "sticky": false,
+      "featured": false,
+      "categories": [
+        {
+          "name": "Colloquium",
+          "slug": "colloquium",
+          "term_group": 0,
+          "term_taxonomy_id": 15,
+          "taxonomy": "tribe_events_cat",
+          "description": "",
+          "parent": 0,
+          "count": 334,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 15,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories/15",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories"
+          }
+        },
+        {
+          "name": "Seminar",
+          "slug": "seminar",
+          "term_group": 0,
+          "term_taxonomy_id": 4,
+          "taxonomy": "tribe_events_cat",
+          "description": "",
+          "parent": 0,
+          "count": 1271,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 4,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories/4",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories"
+          }
+        }
+      ],
+      "tags": [
+        {
+          "name": "MSE",
+          "slug": "mse",
+          "term_group": 0,
+          "term_taxonomy_id": 11,
+          "taxonomy": "post_tag",
+          "description": "",
+          "parent": 0,
+          "count": 290,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 11,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags/11",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags"
+          }
+        },
+        {
+          "name": "MEAM",
+          "slug": "meam",
+          "term_group": 0,
+          "term_taxonomy_id": 10,
+          "taxonomy": "post_tag",
+          "description": "",
+          "parent": 0,
+          "count": 527,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 10,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags/10",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags"
+          }
+        }
+      ],
+      "venue": {
+        "id": 1069,
+        "author": "4",
+        "status": "publish",
+        "date": "2019-01-04 11:07:10",
+        "date_utc": "2019-01-04 16:07:10",
+        "modified": "2019-01-04 11:07:10",
+        "modified_utc": "2019-01-04 16:07:10",
+        "url": "https://events.engineering.upenn.edu/venue/wu-and-chen-auditorium-room-101-levine-hall/",
+        "venue": "Wu and Chen Auditorium (Room 101), Levine Hall",
+        "slug": "wu-and-chen-auditorium-room-101-levine-hall",
+        "address": "3330 Walnut Street",
+        "city": "Philadelphia",
+        "country": "United States",
+        "province": "PA",
+        "state": "PA",
+        "zip": "19104",
+        "website": "https://www.facilities.upenn.edu/maps/locations/levine-hall-melvin-and-claire-weiss-tech-house",
+        "stateprovince": "PA",
+        "show_map": true,
+        "show_map_link": true,
+        "global_id": "events.engineering.upenn.edu?id=1069",
+        "global_id_lineage": [
+          "events.engineering.upenn.edu?id=1069"
+        ]
+      },
+      "organizer": [
+        {
+          "id": 1066,
+          "author": "4",
+          "status": "publish",
+          "date": "2019-01-04 10:37:08",
+          "date_utc": "2019-01-04 15:37:08",
+          "modified": "2019-01-04 10:37:08",
+          "modified_utc": "2019-01-04 15:37:08",
+          "url": "https://events.engineering.upenn.edu/organizer/mechanical-engineering-and-applied-mechanics/",
+          "organizer": "Mechanical Engineering and Applied Mechanics",
+          "slug": "mechanical-engineering-and-applied-mechanics",
+          "phone": "215-746-1818",
+          "website": "http://www.me.upenn.edu/",
+          "email": "meam@seas.upenn.edu",
+          "global_id": "events.engineering.upenn.edu?id=1066",
+          "global_id_lineage": [
+            "events.engineering.upenn.edu?id=1066"
+          ]
+        }
+      ],
+      "custom_fields": [],
+      "is_virtual": false,
+      "virtual_url": null,
+      "virtual_video_source": ""
+    },
+    {
+      "id": 23629,
+      "global_id": "events.engineering.upenn.edu?id=23629",
+      "global_id_lineage": [
+        "events.engineering.upenn.edu?id=23629"
+      ],
+      "author": "72",
+      "status": "publish",
+      "date": "2026-09-02 16:44:52",
+      "date_utc": "2026-09-02 20:44:52",
+      "modified": "2026-09-03 09:50:59",
+      "modified_utc": "2026-09-03 13:50:59",
+      "url": "https://events.engineering.upenn.edu/event/mse-open-house-featuring-dupont/",
+      "rest_url": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/events/23629",
+      "title": "MSE Open House Featuring DuPont",
+      "description": "<p>Join the Department of Materials Science and Engineering (MSE) as we welcome DuPont! Explore materials science and engineering careers and participate in hands-on activities. Bring your resume to be entered into a raffle.</p>\n<p>Open to Engineering students curious about MSE, product development, manufacturing, sustainability, and careers at DuPont.</p>\n<p>Meet DuPont starting at 3:00 p.m. All undergraduates curious about MSE are welcome to stay to hear more about MSE and DuPont starting at 5 p.m. &#8211; refreshments will be served.</p>\n<p>&nbsp;</p>\n<p><img loading=\"lazy\" decoding=\"async\" class=\"alignnone wp-image-23663\" src=\"https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-791x1024.png\" alt=\"\" width=\"600\" height=\"777\" srcset=\"https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-791x1024.png 791w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-232x300.png 232w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-768x994.png 768w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1187x1536.png 1187w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1583x2048.png 1583w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-309x400.png 309w, https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-scaled.png 1978w\" sizes=\"(max-width: 600px) 100vw, 600px\" /></p>",
+      "excerpt": "",
+      "slug": "mse-open-house-featuring-dupont",
+      "image": {
+        "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-scaled.png",
+        "id": 23663,
+        "extension": "png",
+        "width": 1978,
+        "height": 2560,
+        "filesize": 923327,
+        "sizes": {
+          "medium": {
+            "width": 232,
+            "height": 300,
+            "mime-type": "image/png",
+            "filesize": 56062,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-232x300.png"
+          },
+          "large": {
+            "width": 791,
+            "height": 1024,
+            "mime-type": "image/png",
+            "filesize": 280439,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-791x1024.png"
+          },
+          "thumbnail": {
+            "width": 150,
+            "height": 150,
+            "mime-type": "image/png",
+            "filesize": 23237,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-150x150.png"
+          },
+          "medium_large": {
+            "width": 768,
+            "height": 994,
+            "mime-type": "image/png",
+            "filesize": 270778,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-768x994.png"
+          },
+          "1536x1536": {
+            "width": 1187,
+            "height": 1536,
+            "mime-type": "image/png",
+            "filesize": 469264,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1187x1536.png"
+          },
+          "2048x2048": {
+            "width": 1583,
+            "height": 2048,
+            "mime-type": "image/png",
+            "filesize": 683835,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1583x2048.png"
+          },
+          "fullsize1400": {
+            "width": 1400,
+            "height": 700,
+            "mime-type": "image/png",
+            "filesize": 208129,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1400x700.png"
+          },
+          "fullsize1200": {
+            "width": 1200,
+            "height": 330,
+            "mime-type": "image/png",
+            "filesize": 82386,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-1200x330.png"
+          },
+          "square500": {
+            "width": 500,
+            "height": 500,
+            "mime-type": "image/png",
+            "filesize": 119815,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-500x500.png"
+          },
+          "square300": {
+            "width": 300,
+            "height": 300,
+            "mime-type": "image/png",
+            "filesize": 60252,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-300x300.png"
+          },
+          "600X400": {
+            "width": 309,
+            "height": 400,
+            "mime-type": "image/png",
+            "filesize": 82371,
+            "url": "https://events.engineering.upenn.edu/wp-content/uploads/2026/09/2026-MSE-Open-House_higher-res-309x400.png"
+          }
+        },
+        "original_image": "2026-MSE-Open-House_higher-res.png"
+      },
+      "all_day": false,
+      "start_date": "2026-09-10 15:00:00",
+      "start_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "10",
+        "hour": "15",
+        "minutes": "00",
+        "seconds": "00"
+      },
+      "end_date": "2026-09-10 18:30:00",
+      "end_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "10",
+        "hour": "18",
+        "minutes": "30",
+        "seconds": "00"
+      },
+      "utc_start_date": "2026-09-10 19:00:00",
+      "utc_start_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "10",
+        "hour": "19",
+        "minutes": "00",
+        "seconds": "00"
+      },
+      "utc_end_date": "2026-09-10 22:30:00",
+      "utc_end_date_details": {
+        "year": "2026",
+        "month": "09",
+        "day": "10",
+        "hour": "22",
+        "minutes": "30",
+        "seconds": "00"
+      },
+      "timezone": "America/New_York",
+      "timezone_abbr": "EDT",
+      "cost": "",
+      "cost_details": {
+        "currency_symbol": "$",
+        "currency_code": "USD",
+        "currency_position": "prefix",
+        "values": []
+      },
+      "website": "",
+      "show_map": true,
+      "show_map_link": true,
+      "hide_from_listings": false,
+      "sticky": false,
+      "featured": false,
+      "categories": [
+        {
+          "name": "Undergraduate",
+          "slug": "undergraduate",
+          "term_group": 0,
+          "term_taxonomy_id": 32,
+          "taxonomy": "tribe_events_cat",
+          "description": "",
+          "parent": 0,
+          "count": 33,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 32,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories/32",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories"
+          }
+        },
+        {
+          "name": "Student",
+          "slug": "student",
+          "term_group": 0,
+          "term_taxonomy_id": 23,
+          "taxonomy": "tribe_events_cat",
+          "description": "",
+          "parent": 0,
+          "count": 270,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 23,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories/23",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/categories"
+          }
+        }
+      ],
+      "tags": [
+        {
+          "name": "MSE",
+          "slug": "mse",
+          "term_group": 0,
+          "term_taxonomy_id": 11,
+          "taxonomy": "post_tag",
+          "description": "",
+          "parent": 0,
+          "count": 290,
+          "filter": "raw",
+          "term_order": "0",
+          "id": 11,
+          "urls": {
+            "self": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags/11",
+            "collection": "https://events.engineering.upenn.edu/wp-json/tribe/events/v1/tags"
+          }
+        }
+      ],
+      "venue": [
+        {
+          "id": 1070,
+          "author": "4",
+          "status": "publish",
+          "date": "2019-01-04 11:08:08",
+          "date_utc": "2019-01-04 16:08:08",
+          "modified": "2019-01-04 11:08:08",
+          "modified_utc": "2019-01-04 16:08:08",
+          "url": "https://events.engineering.upenn.edu/venue/lobby-and-mezzanine-levine-hall/",
+          "venue": "Lobby and Mezzanine, Levine Hall",
+          "slug": "lobby-and-mezzanine-levine-hall",
+          "address": "3330 Walnut Street",
+          "city": "Philadelphia",
+          "country": "United States",
+          "state": "PA",
+          "zip": "19104",
+          "website": "https://www.facilities.upenn.edu/maps/locations/levine-hall-melvin-and-claire-weiss-tech-house",
+          "stateprovince": "PA",
+          "show_map": true,
+          "show_map_link": true,
+          "global_id": "events.engineering.upenn.edu?id=1070",
+          "global_id_lineage": [
+            "events.engineering.upenn.edu?id=1070"
+          ]
+        },
+        {
+          "id": 5561,
+          "author": "26",
+          "status": "publish",
+          "date": "2021-10-07 15:51:49",
+          "date_utc": "2021-10-07 19:51:49",
+          "modified": "2021-10-07 15:51:49",
+          "modified_utc": "2021-10-07 19:51:49",
+          "url": "https://events.engineering.upenn.edu/venue/quain-courtyard/",
+          "venue": "Quain Courtyard",
+          "slug": "quain-courtyard",
+          "show_map": true,
+          "show_map_link": true,
+          "global_id": "events.engineering.upenn.edu?id=5561",
+          "global_id_lineage": [
+            "events.engineering.upenn.edu?id=5561"
+          ]
+        }
+      ],
+      "organizer": [
+        {
+          "id": 1061,
+          "author": "4",
+          "status": "publish",
+          "date": "2019-01-04 10:08:40",
+          "date_utc": "2019-01-04 15:08:40",
+          "modified": "2026-09-02 14:16:14",
+          "modified_utc": "2026-09-02 18:16:14",
+          "url": "https://events.engineering.upenn.edu/organizer/materials-science-and-engineering/",
+          "organizer": "Materials Science and Engineering",
+          "slug": "materials-science-and-engineering",
+          "phone": "215-898-8337",
+          "website": "https://mse.seas.upenn.edu/",
+          "email": "info-mse@engineering.upenn.edu",
+          "global_id": "events.engineering.upenn.edu?id=1061",
+          "global_id_lineage": [
+            "events.engineering.upenn.edu?id=1061"
+          ]
+        }
+      ],
+      "custom_fields": [],
+      "is_virtual": false,
+      "virtual_url": null,
+      "virtual_video_source": ""
+    }
+  ],
+  "total": 2,
+  "total_pages": 1
+}

@@ -1,0 +1,40 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//University of Pennsylvania//VPUL Calendar 1.0//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:PWC Undergraduate Open House
+DTSTART:20260908T120000
+DTEND:20260908T160000
+DTSTAMP:20260906T225613
+UID:5796-vpul-calendar@upenn.edu
+DESCRIPTION:All are welcome to get to know Penn Women&#39\;s Center at our
+  fall open houses. We will have merch giveaways\, fun activities\, sweet t
+ reats\, and more! \n\n\nView online: https://ulife.vpul.upenn.edu/calendar
+ /view/sub--pwc-undergraduate-open-house/5796/
+LOCATION:Penn Women&#39\;s Center\, 3643 Locust Walk
+ORGANIZER:
+URL:https://ulife.vpul.upenn.edu/calendar/view/pwc-undergraduate-open-hous
+ e/5796/
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:60-Second Lectures | Melissa Wilde\, Davidson Kennedy Professor in
+  the College
+DTSTART:20260909T120000
+DTEND:20260909T130000
+DTSTAMP:20260906T225613
+UID:5803-vpul-calendar@upenn.edu
+DESCRIPTION:The 60-Second Lectures have been a Penn Arts &amp\; Sciences t
+ radition since 2003. You can find the School&rsquo\;s faculty on College G
+ reen every spring and fall\, taking a minute to share their perspectives o
+ n topics that range from the ever-present threat of climate change to taxe
+ s to what makes a poem a poem. \n\nView online: https://ulife.vpul.upenn.e
+ du/calendar/view/sub--60-second-lectures-melissa-wilde-davidson-kennedy-pr
+ ofessor-in-the-college/5803/
+LOCATION:College Green (Rain Location: Bodek Lounge\, Houston Hall)
+ORGANIZER:
+URL:https://ulife.vpul.upenn.edu/calendar/view/60-second-lectures-melissa-
+ wilde-davidson-kennedy-professor-in-the-college/5803/
+END:VEVENT
+END:VCALENDAR

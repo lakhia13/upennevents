@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: penn
+      POSTGRES_PASSWORD: penn
+      POSTGRES_DB: pennevents
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      # Host port 5433, not 5432: this machine already runs a local Postgres on
+      # 5432. Change back to "5432:5432" if that's not true in your environment.
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U penn -d pennevents"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    entrypoint: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://penn:penn@db:5432/pennevents
+    depends_on:
+      db:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    entrypoint: ["python", "-m", "penn_events.pipeline.scheduler"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://penn:penn@db:5432/pennevents
+      LOG_LEVEL: INFO
+    volumes:
+      # Bind-mount so master.yaml / tag_rules.yaml changes don't need a rebuild.
+      - ./penn_events/config:/app/penn_events/config
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pg_data:
