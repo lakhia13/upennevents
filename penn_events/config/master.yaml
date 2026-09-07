@@ -8,6 +8,26 @@
 # `registry_url` must match a `Calendar URL` value in penn-calendars.csv exactly
 # (run `import-registry` before `run-all`, or these feeders log a warning and run
 # with no calendar_id / registry-derived tags).
+#
+# Long-tail note (2026-09-07): the registry has ~140 rows that look unwired but
+# deliberately aren't, because they're already fully captured by a feeder above --
+# confirmed by bulk-probing every unwired row's URL, not assumed from the domain
+# alone. Two different reasons, worth telling apart before adding a new feeder:
+#   1. Global-API sites (LiveWhale `ics`, TEC `tec_rest`, CampusGroups `ics`) --
+#      their REST/subscribe endpoint returns every event site-wide regardless of
+#      which page embeds the widget, so a registry row for one department's
+#      *filtered view* of that same install (e.g. events.med.upenn.edu/<group>/,
+#      36 of these; www.law.upenn.edu/institutes/<x>/) is the exact same feed,
+#      confirmed by identical event counts. Safe to skip outright.
+#   2. Single-page `html_css`/`jsonld`/`rss` sites -- NOT automatically covered
+#      just by sharing a domain (each feeder here only fetches the one page it's
+#      configured with), but several school sites' department/center sub-pages
+#      turned out to be *filtered views of the same master calendar* the main
+#      page already shows (confirmed for design.upenn.edu: same event titles
+#      appear on both /architecture and /events). Verify this per-school before
+#      assuming it, though -- it is not guaranteed the way #1 is.
+# Before adding a feeder for a URL that looks like a gap, check whether it's
+# actually one of these two cases first.
 
 version: 1
 
@@ -184,6 +204,68 @@ feeders:
       base_url: https://facultysenate.upenn.edu
       per_page: 50
 
+  # --- Long-tail batch 1: found by bulk-probing the 421 still-unwired registry ---
+  # --- rows (2026-09-07) for known feed patterns rather than hand-checking     ---
+  # --- each one -- these three are genuinely separate WordPress + TEC          ---
+  # --- installs (not sub-pages of a site already wired above), confirmed with  ---
+  # --- real event data live.                                                   ---
+  - id: quiest-tec
+    type: tec_rest
+    registry_url: https://quiest.seas.upenn.edu/
+    host: QUIEST
+    tags: [engineering]
+    config:
+      base_url: https://quiest.seas.upenn.edu
+      per_page: 50
+
+  - id: cetli-tec
+    type: tec_rest
+    registry_url: https://cetli.upenn.edu/
+    host: Center for Teaching and Learning
+    tags: [faculty]
+    config:
+      base_url: https://cetli.upenn.edu
+      per_page: 50
+
+  - id: penn-memory-center-tec
+    type: tec_rest
+    registry_url: https://pennmemorycenter.org/
+    host: Penn Memory Center
+    tags: [medicine]
+    config:
+      base_url: https://pennmemorycenter.org
+      per_page: 50
+
+  # --- Same batch, jsonld: pages that embed schema.org Event blocks directly   ---
+  # --- (not via TEC's REST API) -- zero-config extraction, same as the         ---
+  # --- generators/athletics-teams block above.                                 ---
+  - id: grasp-jsonld
+    type: jsonld
+    registry_url: https://www.grasp.upenn.edu/events/category/seminars/
+    host: GRASP Lab
+    tags: [engineering, research-lab]
+    config:
+      url: https://www.grasp.upenn.edu/events/category/seminars/
+
+  - id: epigenetics-jsonld
+    type: jsonld
+    registry_url: https://hosting.med.upenn.edu/epigenetics/calendar/list/
+    host: Epigenetics Institute
+    tags: [medicine, research-center]
+    config:
+      url: https://hosting.med.upenn.edu/epigenetics/calendar/list/
+
+  - id: asset-jsonld
+    type: jsonld
+    registry_url: https://asset.seas.upenn.edu/events/
+    host: ASSET Center
+    tags: [engineering, research-center]
+    config:
+      # *.seas.upenn.edu is the old hostname for *.engineering.upenn.edu (per
+      # calendar_source_types.md's documented alias) -- redirects there live;
+      # httpx follows it, so this is the registry's own URL, not a workaround.
+      url: https://asset.seas.upenn.edu/events/
+
   # --- Almanac: bot-blocked at the nginx layer for any UA containing a         ---
   # --- `(+http...)`-style contact URL (the conventional "polite crawler"       ---
   # --- format) regardless of the rest of the string -- confirmed live,        ---
@@ -250,6 +332,309 @@ feeders:
         starts_time: {css: "span.time", attr: text}
         location: {css: "ul.locations li", attr: text}
         description: {css: "p.medium-text", attr: text}
+
+  # --- Long-tail batch 2 (2026-09-07): the bulk probe's 100 http_error rows     ---
+  # --- split cleanly by which infra fronts them (checked live, not assumed):    ---
+  # --- 65 were `server: cloudflare` -- same `cType: managed` shape already      ---
+  # --- solved by playwright_html above, confirmed here again on a sample --      ---
+  # --- these are real, solvable gaps. The rest are not, for two different       ---
+  # --- reasons: 6 `awselb/2.0`-fronted *.upenn.edu department sites (history,   ---
+  # --- chem, ling, physics, polisci, africa, bio) 403 for *every* client        ---
+  # --- tested -- plain curl, a generic UA, and Playwright all get 403 with no   ---
+  # --- challenge page at all, so this is an infra-level (likely IP/ASN) block,  ---
+  # --- not a JS challenge -- no client-side strategy gets past it, and it is    ---
+  # --- not something to route around. 11 more are www.law.upenn.edu institute   ---
+  # --- sub-pages, CloudFront-fronted like the rest of that domain (see          ---
+  # --- law-livewhale above) -- almost certainly the same redundant-sub-page     ---
+  # --- case as the LiveWhale group filters, not investigated individually.
+  - id: library-html
+    type: playwright_html
+    registry_url: https://www.library.upenn.edu/events
+    host: Penn Libraries
+    tags: [libraries]
+    config:
+      list_url: https://www.library.upenn.edu/events
+      wait_selector: "article.listing-card.event"
+      item: "article.listing-card.event"
+      fields:
+        event_name: {css: ".listing-card__title__link", attr: text}
+        event_url: {css: ".listing-card__title__link", attr: href}
+        starts_at: {css: "ul.listing-card__cal-info li:first-child", attr: text}
+        location: {css: "ul.listing-card__cal-info li:nth-child(2)", attr: text}
+        description: {css: ".listing-card__summary", attr: text}
+      # The other 27 unwired library.upenn.edu registry rows (per-branch pages
+      # like /dental, /vet, /museum) are branch homepages, not separate event
+      # listings -- confirmed live (0 matching cards) -- so they're not
+      # separately wireable, not merely redundant. /events/upcoming is a second
+      # registry row for this exact page (confirmed identical event set).
+
+  # --- SAS departments/centers share a handful of Drupal Views themes, not one --
+  # --- -- checked 13 *.sas.upenn.edu sites individually rather than assuming a  ---
+  # --- single shared template. These 3 use the same "events-listing" theme     ---
+  # --- (`.events-listing.views-row` items, a real ISO datetime hiding on the   ---
+  # --- *third* <time> tag in the date block -- the first two have no          ---
+  # --- `datetime` attribute at all, hence `time[datetime]` below, not just     ---
+  # --- `time`). A 4th, italian.sas.upenn.edu, shares this theme too but turned ---
+  # --- out to be a duplicate of figs.sas.upenn.edu's exact event list (same    ---
+  # --- titles, same dates) -- skipped as redundant, not wired separately. CASI ---
+  # --- (below) shares none of this and needed its own selectors. A third       ---
+  # --- theme -- `data-component-id="sas_theme:card_event"`, plain http(s), no  ---
+  # --- Cloudflare challenge -- covers psychology/gsws/southasiacenter (wired   ---
+  # --- below). southasia.upenn.edu is byte-for-byte identical text to          ---
+  # --- southasiacenter.upenn.edu (same events, same titles) -- skipped as a    ---
+  # --- duplicate domain, not wired separately. spanish.sas.upenn.edu/events    ---
+  # --- 404s (stale registry URL). ceas, cseri and prss use neither theme and   ---
+  # --- currently render zero events server-side -- not pursued further.
+  - id: hss-html
+    type: playwright_html
+    registry_url: https://hss.sas.upenn.edu/events
+    host: History and Sociology of Science
+    tags: [arts-and-sciences]
+    config:
+      list_url: https://hss.sas.upenn.edu/events
+      wait_selector: ".events-listing.views-row"
+      item: ".events-listing.views-row"
+      fields:
+        event_name: {css: "h3.events-title a", attr: text}
+        event_url: {css: "h3.events-title a", attr: href}
+        starts_at: {css: ".event-date time[datetime]", attr: datetime}
+        description: {css: ".description", attr: text}
+
+  - id: figs-html
+    type: playwright_html
+    registry_url: https://figs.sas.upenn.edu/events
+    host: French, Italian & Germanic Studies
+    tags: [arts-and-sciences]
+    config:
+      list_url: https://figs.sas.upenn.edu/events
+      wait_selector: ".events-listing.views-row"
+      item: ".events-listing.views-row"
+      fields:
+        event_name: {css: "h3.events-title a", attr: text}
+        event_url: {css: "h3.events-title a", attr: href}
+        starts_at: {css: ".event-date time[datetime]", attr: datetime}
+        description: {css: ".description", attr: text}
+
+  - id: theatre-html
+    type: playwright_html
+    registry_url: https://theatre.sas.upenn.edu/events
+    host: Theatre Arts
+    tags: [arts-and-sciences, arts]
+    config:
+      list_url: https://theatre.sas.upenn.edu/events
+      wait_selector: ".events-listing.views-row"
+      item: ".events-listing.views-row"
+      fields:
+        event_name: {css: "h3.events-title a", attr: text}
+        event_url: {css: "h3.events-title a", attr: href}
+        starts_at: {css: ".event-date time[datetime]", attr: datetime}
+        description: {css: ".description", attr: text}
+
+  # --- CASI: a different Drupal Views theme from the three above (plain        ---
+  # --- `views-field-*` classes, two separate <time datetime> siblings for      ---
+  # --- start/end rather than a nested date-block).                            ---
+  - id: casi-html
+    type: playwright_html
+    registry_url: https://casi.sas.upenn.edu/events
+    host: Center for the Advanced Study of India
+    tags: [arts-and-sciences, research-center]
+    config:
+      list_url: https://casi.sas.upenn.edu/events
+      wait_selector: ".views-field-title"
+      item: "div:has(> .views-field-title):has(> .views-field-field-event-date)"
+      fields:
+        event_name: {css: ".views-field-title a", attr: text}
+        event_url: {css: ".views-field-title a", attr: href}
+        starts_at: {css: ".views-field-field-event-date time[datetime]", attr: datetime}
+        description: {css: ".views-field-field-event-speaker-info", attr: text}
+
+  # --- psychology/southasiacenter/gsws share the "sas_theme:card_event"        ---
+  # --- component. A plain GET worked in isolated testing but 403'd when run    ---
+  # --- alongside the rest of the sweep (confirmed live, 2026-09-07) -- an      ---
+  # --- intermittent Cloudflare/WAF block under load, same family as the other  ---
+  # --- *.sas.upenn.edu sites above, so all three use the real headless        ---
+  # --- browser rather than relying on plain HTTP staying lucky.               ---
+  - id: psychology-html
+    type: playwright_html
+    registry_url: https://psychology.sas.upenn.edu/events
+    host: Psychology
+    tags: [arts-and-sciences]
+    config:
+      list_url: https://psychology.sas.upenn.edu/events
+      wait_selector: 'div[data-component-id="sas_theme:card_event"]'
+      item: 'div[data-component-id="sas_theme:card_event"]'
+      fields:
+        event_name: {css: ".card_content h2, .card_content h3", attr: text}
+        event_url: {css: ".card_content a", attr: href}
+        starts_at: {css: "time[datetime]", attr: datetime}
+        location: {css: ".field--name-field-location", attr: text}
+        description: {css: ".field--name-body", attr: text}
+
+  - id: southasiacenter-html
+    type: playwright_html
+    registry_url: https://www.southasiacenter.upenn.edu/events
+    host: South Asia Center
+    tags: [arts-and-sciences, research-center]
+    config:
+      list_url: https://www.southasiacenter.upenn.edu/events
+      wait_selector: 'div[data-component-id="sas_theme:card_event"]'
+      item: 'div[data-component-id="sas_theme:card_event"]'
+      fields:
+        event_name: {css: ".card_content h2, .card_content h3", attr: text}
+        event_url: {css: ".card_content a", attr: href}
+        starts_at: {css: "time[datetime]", attr: datetime}
+        location: {css: ".field--name-field-location", attr: text}
+        description: {css: ".field--name-body", attr: text}
+
+  - id: gsws-html
+    type: playwright_html
+    registry_url: https://gsws.sas.upenn.edu/events
+    host: Gender, Sexuality, and Women's Studies
+    tags: [arts-and-sciences]
+    config:
+      list_url: https://gsws.sas.upenn.edu/events
+      wait_selector: 'div[data-component-id="sas_theme:card_event"]'
+      item: 'div[data-component-id="sas_theme:card_event"]'
+      fields:
+        event_name: {css: ".card_content h2, .card_content h3", attr: text}
+        event_url: {css: ".card_content a", attr: href}
+        starts_at: {css: "time[datetime]", attr: datetime}
+        location: {css: ".field--name-field-location", attr: text}
+        description: {css: ".field--name-body", attr: text}
+
+  # --- Water Center: same "events-listing.views-row" theme as hss/figs/theatre ---
+  # --- above (odd for a WordPress-labeled registry row, but the live markup    ---
+  # --- matches exactly) -- only 1 upcoming event as of 2026-09-07, but the     ---
+  # --- selectors are free to reuse.                                           ---
+  - id: watercenter-html
+    type: playwright_html
+    registry_url: https://watercenter.sas.upenn.edu/events/
+    host: The Water Center at Penn
+    tags: [arts-and-sciences, research-center]
+    config:
+      list_url: https://watercenter.sas.upenn.edu/events/
+      wait_selector: ".events-listing.views-row"
+      item: ".events-listing.views-row"
+      fields:
+        event_name: {css: "h3.events-title a", attr: text}
+        event_url: {css: "h3.events-title a", attr: href}
+        starts_at: {css: ".event-date time[datetime]", attr: datetime}
+        description: {css: ".description", attr: text}
+
+  # --- CEET: plain WordPress, Cloudflare-fronted like everything else in this  ---
+  # --- batch. No year in the date block (month/day only, like Penn Today --    ---
+  # --- dateutil defaults to the current year) and the time-range + location    ---
+  # --- share one <p> separated by an en dash, not a hyphen -- the reason        ---
+  # --- html_adapter's range-splitting regex was widened to accept both.        ---
+  - id: ceet-html
+    type: playwright_html
+    registry_url: https://ceet.upenn.edu/events/
+    host: Center of Excellence in Environmental Toxicology
+    tags: [medicine, research-center]
+    config:
+      list_url: https://ceet.upenn.edu/events/
+      wait_selector: "article.event-card"
+      item: "article.event-card"
+      fields:
+        event_name: {css: ".event-card__title a", attr: text}
+        event_url: {css: ".event-card__title a", attr: href}
+        starts_at: {css: ".event-card__date", attr: text}
+        starts_time: {css: ".event-card__content p", attr: text}
+
+  # --- Penn Global: isss and pennabroad share the exact same WordPress theme   ---
+  # --- (`card--dynamic` / `event-date` block) -- confirmed by identical class   ---
+  # --- structure on both, unlike the SAS Drupal sites above which mostly       ---
+  # --- didn't share a theme with each other. Both pages' listings are          ---
+  # --- currently stale (dated 2025 into early 2026, nothing recent) -- that's  ---
+  # --- the real content on the page as of 2026-09-07, not a scraping bug; it   ---
+  # --- will pick up real events automatically once each site's own listing is  ---
+  # --- updated, same as any other feeder.
+  - id: isss-html
+    type: playwright_html
+    registry_url: https://global.upenn.edu/isss/events
+    host: International Student and Scholar Services
+    tags: [global]
+    config:
+      list_url: https://global.upenn.edu/isss/events
+      wait_selector: ".card--dynamic"
+      item: ".card--dynamic"
+      fields:
+        event_name: {css: ".card__heading a", attr: text}
+        event_url: {css: ".card__heading a", attr: href}
+        starts_at: {css: "time.date--start", attr: text}
+        description: {css: ".card__excerpt", attr: text}
+
+  - id: penn-abroad-html
+    type: playwright_html
+    registry_url: https://global.upenn.edu/pennabroad/events/
+    host: Penn Abroad
+    tags: [global]
+    config:
+      list_url: https://global.upenn.edu/pennabroad/events/
+      wait_selector: ".card--dynamic"
+      item: ".card--dynamic"
+      fields:
+        event_name: {css: ".card__heading a", attr: text}
+        event_url: {css: ".card__heading a", attr: href}
+        starts_at: {css: "time.date--start", attr: text}
+        description: {css: ".card__excerpt", attr: text}
+
+  - id: pci-html
+    type: playwright_html
+    registry_url: https://pci.upenn.edu/events/
+    host: Penn Center for Innovation
+    tags: [university-wide]
+    config:
+      list_url: https://pci.upenn.edu/events/
+      wait_selector: ".ep-event-list-item"
+      item: ".ep-event-list-item"
+      fields:
+        event_name: {css: ".ep-box-list-title a", attr: text}
+        event_url: {css: ".ep-box-list-title a", attr: href}
+        starts_at: {css: ".ep-event-date", attr: text}
+        starts_time: {css: ".ep-event-date + span", attr: text}
+
+  - id: snf-paideia-html
+    type: playwright_html
+    registry_url: https://snfpaideia.upenn.edu/engage/events/
+    host: SNF Paideia Program
+    tags: [university-wide]
+    config:
+      list_url: https://snfpaideia.upenn.edu/engage/events/
+      wait_selector: ".c-entry-card"
+      item: ".c-entry-card"
+      fields:
+        event_name: {css: ".c-entry-card__titleLink", attr: text}
+        event_url: {css: ".c-entry-card__titleLink", attr: href}
+        starts_at: {css: ".c-entry-card__eventDate", attr: text}
+        description: {css: ".c-entry-card__body", attr: text}
+
+  # --- Penn Alumni: iModules/Anthology Encompass, plain HTTP (no Cloudflare).  ---
+  # --- Per-event .ics download links exist but there's no site-wide feed --   ---
+  # --- scraping the list page instead. The date block has no year (just       ---
+  # --- "Sep" / "10"), and the time range is spelled out as "6:30 PM to        ---
+  # --- 11:30 PM" -- no dash at all -- which is why `_first_range_token`'s      ---
+  # --- separator regex was widened to also split on the word "to". The page   ---
+  # --- renders the SAME events again under several category tabs             ---
+  # --- (#imodcmscalendar2351{1..9}) -- confirmed live, 2026-09-07: 115 raw    ---
+  # --- .eventItem nodes, only 53 distinct events, and #imodcmscalendar23511   ---
+  # --- (the "All Events" tab, largest of the set) alone already contains all  ---
+  # --- 53 with zero repeats -- so item is scoped to that one tab's subtree,   ---
+  # --- not the whole page, to avoid re-ingesting duplicates as separate rows. ---
+  - id: penn-alumni-html
+    type: html_css
+    registry_url: https://www.alumni.upenn.edu/events
+    host: Penn Alumni Relations
+    tags: [alumni, university-wide]
+    config:
+      list_url: https://www.alumni.upenn.edu/events
+      item: "#imodcmscalendar23511 .eventItem"
+      fields:
+        event_name: {css: ".title a", attr: text}
+        event_url: {css: ".title a", attr: href}
+        starts_at: {css: ".date", attr: text}
+        starts_time: {css: ".details .time", attr: text}
+        location: {css: ".details .location", attr: text}
 
 # Deliberately not wired yet (each needs more than a plain HTTP GET to resolve):
 #

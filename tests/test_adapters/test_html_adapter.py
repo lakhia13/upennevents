@@ -10,7 +10,7 @@ from __future__ import annotations
 import datetime as dt
 from pathlib import Path
 
-from penn_events.adapters.html_adapter import HtmlCssAdapter
+from penn_events.adapters.html_adapter import HtmlCssAdapter, _first_range_token
 from penn_events.core.models import RawRecord
 from penn_events.feeders.html_css import FieldSelector, HtmlCssConfig
 
@@ -79,3 +79,18 @@ def test_starts_time_field_is_recombined_with_a_date_only_starts_at(ctx):
     events = {e.event_name: e for e in HtmlCssAdapter(config).adapt(_record(), ctx)}
     split = events["Split Date/Time Card"]
     assert split.starts_at == dt.datetime(2026, 9, 20, 18, 0, tzinfo=dt.timezone.utc)  # 2pm EDT
+
+
+def test_first_range_token_splits_on_en_dash_and_em_dash_too():
+    # CEET's markup uses an en dash ('3:00 pm – 4:00 pm'), not a hyphen --
+    # confirmed live, 2026-09-07.
+    assert _first_range_token("3:00 pm – 4:00 pm") == "3:00 pm"
+    assert _first_range_token("3:00 pm — 4:00 pm") == "3:00 pm"
+    assert _first_range_token("12:00pm-1:00pm") == "12:00pm"
+
+
+def test_first_range_token_splits_on_the_word_to_as_well():
+    # Penn Alumni's iModules markup spells the range out as "6:30 PM to 11:30 PM" --
+    # no dash at all. Confirmed live, 2026-09-07: fuzzy-parsing the unsplit string
+    # silently picked the *end* time (11:30 PM), not the start.
+    assert _first_range_token("6:30 PM to 11:30 PM") == "6:30 PM"

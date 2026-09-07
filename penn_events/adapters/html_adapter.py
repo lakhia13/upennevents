@@ -27,9 +27,11 @@ log = logging.getLogger(__name__)
 
 
 def _first_range_token(raw: str) -> str:
-    """Card teasers often show a start-end time as one string ('12:00pm-1:00pm');
-    dateutil can't parse the range, so take the start."""
-    return re.split(r"\s*-\s*", raw.strip(), maxsplit=1)[0]
+    """Card teasers often show a start-end time as one string ('12:00pm-1:00pm',
+    '3:00 pm – 4:00 pm' with an en dash, or Penn Alumni's '6:30 PM to 11:30 PM');
+    dateutil can't parse the range (worse, fuzzy-parsing it whole silently picks the
+    *end* time, not the start), so take the start."""
+    return re.split(r"\s*(?:[-–—]|\bto\b)\s*", raw.strip(), maxsplit=1, flags=re.I)[0]
 
 
 def _extract(tag: Tag, field: "FieldSelector") -> list[str]:
