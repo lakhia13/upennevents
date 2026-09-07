@@ -21,7 +21,10 @@ RUN playwright install --with-deps chromium
 COPY penn_events ./penn_events
 COPY alembic ./alembic
 COPY alembic.ini .
-COPY penn-calendars.csv .
+# Same relative path as in the repo, so `import-registry docs/penn-calendars.csv`
+# is one command that works both in this image and in a plain checkout (which is
+# how the GitHub Actions migrate workflow invokes it).
+COPY docs/penn-calendars.csv ./docs/penn-calendars.csv
 
 ENV PYTHONUNBUFFERED=1
 

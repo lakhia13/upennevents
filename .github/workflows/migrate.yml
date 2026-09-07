@@ -1,0 +1,53 @@
+# Schema migrations and registry load, against the hosted database.
+#
+# Deliberately manual-only. Running `alembic upgrade head` on a schedule would let
+# a half-finished migration deploy itself four times a day; schema changes should
+# happen when someone is watching.
+name: migrate
+
+on:
+  workflow_dispatch:
+    inputs:
+      import_registry:
+        description: >-
+          Also reload docs/penn-calendars.csv into the calendars table. Required
+          before the first scrape (feeders resolve calendar_id and school_division
+          through it); afterwards only needed when the CSV changes. Idempotent.
+        type: boolean
+        default: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Never let a migration run while a scrape is mid-write, or vice versa.
+    concurrency:
+      group: scrape
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Tells 0002 that authenticator/anon are platform-managed: create
+          # nothing, alter nothing, grant to the built-in `anon`. Without this the
+          # migration aborts rather than guess -- see penn_events/db/deploy_target.py.
+          DB_TARGET: supabase
+        run: alembic upgrade head
+
+      - name: Load calendar registry
+        if: ${{ inputs.import_registry }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m penn_events.cli import-registry docs/penn-calendars.csv

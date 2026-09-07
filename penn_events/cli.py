@@ -114,6 +114,16 @@ def run_all_command(
     config_path: str = typer.Option(None, "--config", "-c"),
     feeder_id: list[str] = typer.Option(None, "--feeder-id", help="Restrict to these feeder ids"),
     concurrency: int = typer.Option(8, "--concurrency"),
+    max_failures: int = typer.Option(
+        0,
+        "--max-failures",
+        help=(
+            "Exit 0 while at most this many feeders failed. Feeders that succeed "
+            "still write their events either way -- this only controls the exit "
+            "code, for scheduled runs where a couple of flaky upstream sites "
+            "shouldn't mark the whole run as broken."
+        ),
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Run every enabled feeder (or a chosen subset) concurrently."""
@@ -136,8 +146,13 @@ def run_all_command(
             typer.secho(f"FAIL {report.feeder_id}: {report.error}", fg=typer.colors.RED)
 
     typer.echo(f"\n{len(reports)} feeders run, {failures} failed")
-    if failures:
+    if failures > max_failures:
         raise typer.Exit(code=1)
+    if failures:
+        typer.secho(
+            f"tolerating {failures} failure(s) (--max-failures {max_failures})",
+            fg=typer.colors.YELLOW,
+        )
 
 
 @app.command("upcoming")

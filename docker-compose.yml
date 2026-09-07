@@ -1,3 +1,10 @@
+# Local development environment.
+#
+# Production does not run this stack: Postgres and the REST API are a hosted
+# Supabase project, and the scrape is a scheduled GitHub Actions job (see
+# .github/workflows/). This file stays so you can work offline and test against a
+# throwaway database without touching live data -- the credentials below are
+# deliberately local-only placeholders.
 services:
   db:
     image: postgres:16

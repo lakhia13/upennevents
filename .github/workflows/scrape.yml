@@ -1,0 +1,63 @@
+# Scheduled ingestion run -- the production replacement for the APScheduler worker.
+#
+# The scrape is a batch job, not a service: ~5 minutes of work, four times a day.
+# Hosting a 24/7 container for that is what free tiers punish (they spin down on
+# idle, and a sleeping container never fires its cron), so it runs here instead.
+name: scrape
+
+on:
+  schedule:
+    # Every 6 hours, matching defaults.schedule in penn_events/config/master.yaml.
+    # Every feeder currently uses that default, so this reproduces the previous
+    # cadence exactly. GitHub queues scheduled runs on a best-effort basis and can
+    # delay them under load -- fine for a 6-hourly refresh, not a hard guarantee.
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+# A slow run must never overlap the next one: two concurrent sweeps would upsert
+# the same rows simultaneously. Queue instead of cancelling, so a run that is
+# genuinely still working is allowed to finish.
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"   # matches docker/Dockerfile
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Chromium is ~150MB and slow to download; key the cache on the pinned
+      # playwright version so a version bump busts it automatically.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install Chromium
+        # --with-deps installs OS libraries too, which the cache above does not
+        # cover, so it still runs on a cache hit -- just without the download.
+        run: playwright install --with-deps chromium
+
+      - name: Run all feeders
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          LOG_LEVEL: INFO
+        # Tolerate a couple of failures: these are ~68 third-party university
+        # sites, and one being down for a few hours is normal, not a broken
+        # pipeline. Everything that succeeded still landed. Anything worse than
+        # this fails the run loudly.
+        run: |
+          python -m penn_events.cli run-all --concurrency 8 --max-failures 5

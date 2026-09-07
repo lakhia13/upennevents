@@ -130,6 +130,17 @@ def upgrade() -> None:
     op.create_index("ix_events_source_uid", "events", ["calendar_id", "source_uid"])
     op.create_index("ix_events_tags", "events", ["tags"], postgresql_using="gin")
     op.create_index("ix_events_search", "events", ["search_vector"], postgresql_using="gin")
+    # gin_trgm_ops has to resolve through search_path, and pg_trgm doesn't live in
+    # the same schema everywhere: a self-hosted Postgres puts it in public, while
+    # Supabase installs extensions into a dedicated `extensions` schema. Naming
+    # both here works on either (Postgres ignores schemas in a search_path that
+    # don't exist). SET LOCAL reverts when the migration transaction commits.
+    #
+    # Note the extension itself is deliberately NOT pinned with
+    # `CREATE EXTENSION ... SCHEMA extensions` above: that would move pg_trgm out
+    # of public on a local database, where `extensions` is not on the default
+    # search_path, breaking the very index this is fixing.
+    op.execute("SET LOCAL search_path = public, extensions")
     op.execute(
         "CREATE INDEX ix_events_location_trgm ON events "
         "USING gin (location gin_trgm_ops)"

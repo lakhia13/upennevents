@@ -41,6 +41,57 @@ carries the live reasoning/citations behind every decision below.
 | Design | 9 |
 | Libraries | 8 |
 
+## Deployment
+
+Production runs on free tiers, with no always-on container:
+
+| Piece | Where it runs |
+|---|---|
+| Postgres + REST API | Supabase (its API *is* PostgREST, so `api.events` carries over unchanged) |
+| Scheduled scrape | GitHub Actions, `.github/workflows/scrape.yml`, every 6 hours |
+| Schema migrations | GitHub Actions, `.github/workflows/migrate.yml`, manual dispatch only |
+| Frontend | Vercel (static Vite build) |
+| Local development | `docker-compose.yml` — not used in production |
+
+The scrape is a batch job (~5 minutes, 4×/day), not a service, so it runs as CI
+rather than as a container. Free container tiers spin down when idle, which would
+silently stop an in-container scheduler from ever firing.
+
+**Two things to know before touching the database:**
+
+1. **`DB_TARGET` must be `supabase`** when migrating the hosted database. Supabase
+   owns the `authenticator` and `anon` roles, and migration `0002` would otherwise
+   rewrite `authenticator`'s password and take the hosted API offline. The migration
+   detects a managed cluster and aborts with an explanatory error rather than guess,
+   so the failure mode is loud — see `penn_events/db/deploy_target.py`.
+2. **Two independent controls keep internal columns private.** Supabase must expose
+   only the `api` schema (Settings → API → Exposed schemas), *and* `0004` enables
+   deny-by-default RLS on `public.events`/`public.calendars`. Either alone would do
+   it; both mean a dashboard misconfiguration isn't a data leak. This is also what
+   makes it safe for the frontend to ship the Supabase anon key.
+
+`DATABASE_URL` must use Supabase's **session-mode pooler** — GitHub Actions runners
+are IPv4-only and Supabase's direct connection is IPv6-only.
+
+### First-time setup
+
+The code is deployment-ready; these steps are the manual half.
+
+1. **Supabase** — create the project. Copy the *session-mode pooler* connection
+   string and keep the `postgresql+psycopg://` scheme the code expects.
+2. **Settings → API → Exposed schemas** — set to `api`, removing `public`.
+3. **GitHub → Settings → Secrets → Actions** — add `DATABASE_URL` (the pooler
+   string from step 1). Both workflows read it from there.
+4. **Run the `migrate` workflow** manually, with `import_registry` checked. This
+   applies the schema and loads all 511 registry rows; the first scrape needs them
+   or every event lands without a `school_division`.
+5. **Run the `scrape` workflow** manually once to confirm it works, then let the
+   6-hourly schedule take over. Confirm one *scheduled* run actually fires —
+   a manual dispatch can't tell you whether the cron is healthy.
+6. **Vercel** — set `VITE_POSTGREST_URL` to `https://<ref>.supabase.co/rest/v1` and
+   `VITE_SUPABASE_ANON_KEY` to the project's anon key, then redeploy. Vite bakes
+   these in at build time, so changing them requires a rebuild, not just a restart.
+
 ## Architecture recap
 
 `master.yaml` → `FeederFactory` → `Feeder.fetch()` → `Adapter.adapt()` →

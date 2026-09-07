@@ -3,6 +3,17 @@
 Runs inside the `worker` container as the long-lived process. Each feeder gets its
 own job so a `schedule:` override on one feeder in `master.yaml` does not affect
 any other, and a single slow feeder cannot block the rest from firing on time.
+
+**Local development only.** Production does not run this: the scrape is ~5 minutes
+of work four times a day, so it runs as a scheduled GitHub Actions job
+(.github/workflows/scrape.yml) calling `cli.py run-all` instead of keeping a
+container alive to hold this scheduler. That also sidesteps the failure mode of
+free container tiers, which spin down when idle and would silently never fire.
+
+One consequence: in production every feeder runs on the workflow's single cron, so
+a per-feeder `schedule:` in master.yaml has no effect there. Every feeder currently
+uses the same default, so this changes nothing today -- but a per-feeder override
+would need the workflow to change too, not just the YAML.
 """
 from __future__ import annotations
 
