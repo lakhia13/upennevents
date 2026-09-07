@@ -33,6 +33,13 @@ def test_parse_datetime_handles_ordinal_suffixes_and_fuzzy_text():
     assert result.astimezone(ZoneInfo("America/New_York")).hour == 16
 
 
+def test_parse_datetime_handles_unix_epoch_string_from_html_datetime_attrs():
+    # Real shape from Penn GSE's Drupal event listing: <time datetime="1788998400">.
+    # dateutil.parser used to read the 10-digit string as a year and raise.
+    result = parse_datetime("1788998400", "America/New_York")
+    assert result == dt.datetime(2026, 9, 10, 0, 0, tzinfo=dt.timezone.utc)
+
+
 def test_parse_datetime_returns_none_for_garbage():
     assert parse_datetime("not a date", "America/New_York") is None
     assert parse_datetime("", "America/New_York") is None

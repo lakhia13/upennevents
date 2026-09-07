@@ -31,9 +31,78 @@ feeders:
     config:
       url: https://ulife.vpul.upenn.edu/calendar/ics/subscribe
 
+  # --- RSS: SAS's feed embeds a <sdo:Event> schema.org block per item with a  ---
+  # --- real startDate/endDate, not just the item's publish date -- confirmed ---
+  # --- live and preferred over <pubDate> by the adapter.                     ---
+  - id: sas-rss
+    type: rss
+    registry_url: https://www.sas.upenn.edu/events/
+    host: School of Arts & Sciences
+    tags: [arts-and-sciences]
+    config:
+      url: https://www.sas.upenn.edu/events/rss.xml
+
+  # --- Declarative HTML/CSS: selectors below were read from each site's real ---
+  # --- markup (2026-09-07), not guessed -- see plan notes for full snippets. ---
+  - id: gse-html
+    type: html_css
+    registry_url: https://www.gse.upenn.edu/events
+    host: Penn GSE
+    tags: [education]
+    config:
+      list_url: https://www.gse.upenn.edu/events
+      item: "li.node--type-event"
+      fields:
+        event_name: {css: "a.event_list_item_title_link", attr: text}
+        event_url: {css: "a.event_list_item_title_link", attr: href}
+        # Drupal renders this as a Unix epoch string, e.g. datetime="1788998400"
+        # -- normalize.datetimes.parse_datetime special-cases that shape.
+        starts_at: {css: "time.event_list_item_time", attr: datetime}
+        description: {css: ".event_list_item_description", attr: text}
+
+  - id: dental-html
+    type: html_css
+    registry_url: https://www.dental.upenn.edu/events/
+    host: Penn Dental
+    tags: [dental]
+    config:
+      list_url: https://www.dental.upenn.edu/events/
+      item: "div.row.pt-3.mb-3"
+      fields:
+        event_name: {css: "h2.page-title", attr: text}
+        event_url: {css: "a", attr: href}
+        starts_at: {css: "small", attr: text}
+        location: {css: "span.fs-6.fw-light", attr: text}
+
+  - id: design-html
+    type: html_css
+    registry_url: https://www.design.upenn.edu/events
+    host: Stuart Weitzman School of Design
+    tags: [design]
+    config:
+      list_url: https://www.design.upenn.edu/events
+      item: "a.event-row"
+      fields:
+        event_name: {css: "span.title", attr: text}
+        event_url: {css: "", attr: href}  # the item element itself is the <a>
+        starts_at: {css: ".event-date", attr: text}
+
+  - id: sp2-html
+    type: html_css
+    registry_url: https://www.sp2.upenn.edu/events/
+    host: SP2
+    tags: [social-policy]
+    config:
+      list_url: https://www.sp2.upenn.edu/events/
+      item: "div.events-archive__item"
+      fields:
+        event_name: {css: "h3.event-item__title a", attr: text}
+        event_url: {css: "h3.event-item__title a", attr: href}
+        starts_at: {css: "time", attr: datetime}
+        location: {css: ".event-item__location", attr: text}
+
   # --- The Events Calendar REST API: the best-behaved format in the       ---
-  # --- registry. Confirmed live below; SP2 was tried and dropped (its     ---
-  # --- /wp-json/tribe/events/v1/events route 404s despite the CSV entry). ---
+  # --- registry. Confirmed live below.                                    ---
   - id: engineering-tec
     type: tec_rest
     registry_url: https://events.engineering.upenn.edu/
@@ -67,16 +136,88 @@ feeders:
 #     returns a Cloudflare interstitial to a plain client ("Just a moment...").
 #     Needs the Playwright feeder (plan phase 5) or a Cloudflare-aware fetch.
 #
+#   - Annenberg (https://www.asc.upenn.edu/news-events/events) -- also Cloudflare,
+#     but selectively: a plain `curl` UA gets a real 200 with real event markup,
+#     while our actual PennEventsBot UA (and a Chrome UA) gets a 403 with
+#     `cf-mitigated: challenge`. That is Cloudflare deliberately blocking
+#     bot-identifying traffic -- the fix is not to spoof a browser UA to get
+#     past it, it's the same Playwright/Cloudflare-aware-fetch work as Penn
+#     Today.
+#
+#   - Wharton (https://www.wharton.upenn.edu/events/) -- confirmed via view-source
+#     that the page is a Salesforce "EventsHQ" widget
+#     (wharton.my.salesforce-sites.com/wevents/lightning/lightning.out.js)
+#     rendered entirely client-side; there is no server-rendered listing or feed
+#     to scrape. Needs the Playwright feeder.
+#
 #   - Almanac AT PENN (https://almanac.upenn.edu/at-penn-calendar) -- loads fine,
 #     but events sit inside nested Bootstrap accordion panels grouped by date,
 #     not a flat list of teasers. Needs selectors hand-tuned against the real
 #     panel structure before going in `html_css`, not guessed ones.
 #
-#   - PSOM LiveWhale (https://events.med.upenn.edu/all/) -- the page confirms
+#   - LiveWhale sites -- PSOM (https://events.med.upenn.edu/all/), Penn Carey Law
+#     (https://www.law.upenn.edu/calendar/), Nursing
+#     (https://www.nursing.upenn.edu/calendar/) -- all confirm
 #     `"webcal_feed_links":"true"` but the actual .ics URL is generated
 #     client-side by the Subscribe button's JS; every guessed URL pattern
-#     (`/all/list/?format=ics`, `/live/ics/...`, etc.) 404s or returns the HTML
-#     shell. Needs a browser probe to capture the real link, then generators
-#     can expand it across all ~37 PSOM groups in one block.
-
-generators: []
+#     (`/all/list/?format=ics`, `/live/ics/...`) 404s or returns the HTML shell,
+#     and a Playwright click on "Subscribe" (tried against PSOM) opened no
+#     visible link/modal in the captured network log either -- the real
+#     subscribe mechanism needs more investigation than a scripted click.
+#     Law and Nursing additionally redirect-loop on the bare `/calendar/` path;
+#     use `/calendar/view/all`. Once the real feed URL is found for one, the
+#     other two are the same fix.
+#
+generators:
+  # --- Athletics: SIDEARM's schedule pages (pennathletics.com/sports/<slug>/    ---
+  # --- schedule) turned out to need no new feeder type at all -- each page      ---
+  # --- embeds a bare JSON-LD array of `@type: "SportsEvent"` blocks (confirmed  ---
+  # --- live, 2026-09-07, across football/wrestling/volleyball/crew/cross        ---
+  # --- country -- same shape every time). SportsEvent is a schema.org subtype   ---
+  # --- of Event, so `jsonld_adapter._iter_event_nodes` was widened to accept    ---
+  # --- any `*Event` type, not a new adapter. Slugs below match                  ---
+  # --- `calendars.calendar_url` exactly (all 32 confirmed present in the        ---
+  # --- registry as "Athletics (team schedule)" rows) and pennathletics.com's    ---
+  # --- own nav, not guessed.
+  - id: athletics-teams
+    type: jsonld
+    host: Athletics
+    tags: [athletics]
+    for_each:
+      - baseball
+      - mens-basketball
+      - mens-crew
+      - mens-cross-country
+      - mens-fencing
+      - mens-golf
+      - mens-lacrosse
+      - mens-rowing
+      - mens-soccer
+      - mens-squash
+      - mens-swimming-and-diving
+      - mens-tennis
+      - mens-track-and-field
+      - field-hockey
+      - football
+      - softball
+      - sprint-football
+      - womens-basketball
+      - womens-cross-country
+      - womens-fencing
+      - womens-golf
+      - womens-gymnastics
+      - womens-lacrosse
+      - womens-rowing
+      - womens-soccer
+      - womens-squash
+      - womens-swimming-and-diving
+      - womens-tennis
+      - womens-track-and-field
+      - womens-volleyball
+      - wrestling
+    template:
+      id: "athletics-{item}"
+      registry_url: "https://pennathletics.com/sports/{item}/schedule"
+      tags: ["{item}"]
+      config:
+        url: "https://pennathletics.com/sports/{item}/schedule"

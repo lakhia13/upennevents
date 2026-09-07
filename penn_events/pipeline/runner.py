@@ -10,6 +10,7 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
+from penn_events.core.errors import ConfigError
 from penn_events.core.http import HttpClient
 from penn_events.core.models import FeedContext, NormalizedEvent, RunReport
 from penn_events.db.repositories.calendars import CalendarRepository
@@ -51,17 +52,18 @@ def build_context(spec: "FeederSpec", config: "MasterConfig") -> FeedContext:
         with session_scope() as session:
             row = CalendarRepository(session).get_by_url(spec.registry_url)
             if row is None:
-                log.warning(
-                    "feeder %s: registry_url %s has no matching calendars row -- "
-                    "run `import-registry` or fix the URL",
-                    spec.id,
-                    spec.registry_url,
+                # Not a warn-and-continue: a silently unresolved registry_url means
+                # every event this feeder writes gets calendar_id=None, which is
+                # exactly what makes it (and its school_division) invisible to the
+                # API and frontend -- caught here instead, before any events exist.
+                raise ConfigError(
+                    f"feeder {spec.id!r}: registry_url {spec.registry_url!r} has no "
+                    "matching calendars row -- run `import-registry` or fix the URL"
                 )
-            else:
-                calendar_id = row.id
-                source_calendar_name = source_calendar_name or row.calendar_name
-                host = host or row.school_division or row.unit
-                reg_tags = tuple(registry_tags(row.school_division, row.category))
+            calendar_id = row.id
+            source_calendar_name = source_calendar_name or row.calendar_name
+            host = host or row.school_division or row.unit
+            reg_tags = tuple(registry_tags(row.school_division, row.category))
 
     return FeedContext(
         feeder_id=spec.id,

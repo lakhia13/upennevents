@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <title>Events | Example School</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://example.upenn.edu/events/",
+        "name": "Events"
+      },
+      {
+        "@type": "Event",
+        "@id": "https://example.upenn.edu/events/robotics-seminar/#event",
+        "name": "Robotics Seminar: Soft Actuators",
+        "startDate": "2026-09-15T14:00:00-04:00",
+        "endDate": "2026-09-15T15:30:00-04:00",
+        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+        "location": {
+          "@type": "Place",
+          "name": "Towne Building, Room 100",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "220 S 33rd St",
+            "addressLocality": "Philadelphia"
+          }
+        },
+        "organizer": {
+          "@type": "Organization",
+          "name": "Mechanical Engineering and Applied Mechanics"
+        },
+        "description": "A talk on soft robotic actuators.",
+        "url": "/events/robotics-seminar/"
+      },
+      {
+        "@type": "Event",
+        "@id": "https://example.upenn.edu/events/virtual-town-hall/#event",
+        "name": "Virtual Town Hall",
+        "startDate": "2026-09-20T12:00:00-04:00",
+        "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+        "location": "Zoom",
+        "organizer": "Office of the Provost",
+        "url": "https://example.upenn.edu/events/virtual-town-hall/"
+      },
+      {
+        "@type": "Event",
+        "@id": "https://example.upenn.edu/events/cbe-seminar/#event",
+        "name": "CBE Seminar: Polymer Interfaces",
+        "startDate": "2026-09-22T15:00:00-04:00",
+        "location": {
+          "@type": "Place",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "220 S 33rd St, Towne Building",
+            "addressLocality": "Philadelphia"
+          }
+        },
+        "organizer": {
+          "@type": "Organization",
+          "name": "Chemical and Biomolecular Engineering"
+        },
+        "url": "/events/cbe-seminar/"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  { this is not valid json at all }
+  </script>
+  <script type="application/ld+json">
+  [
+    {
+      "@type": "Event",
+      "name": "Event Missing Its Start Date",
+      "description": "Should be skipped -- no startDate."
+    }
+  ]
+  </script>
+</head>
+<body>
+  <h1>Upcoming Events</h1>
+</body>
+</html>

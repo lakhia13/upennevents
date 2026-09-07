@@ -60,6 +60,15 @@ def parse_datetime(value: object, tz: str | None = None) -> dt.datetime | None:
     text_value = str(value).strip()
     if not text_value:
         return None
+    # HTML feeds routinely put a Unix epoch in a string attribute, e.g. Drupal's
+    # `<time datetime="1788998400">` (dateutil.parser would read that as a
+    # 10-digit *year* and raise ParserError -- silently dropping the event, since
+    # a None starts_at makes every html_css adapter discard the whole item).
+    if re.fullmatch(r"-?\d{9,11}", text_value):
+        try:
+            return dt.datetime.fromtimestamp(float(text_value), dt.timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            pass
     # Strip ordinal suffixes ("March 5th") that dateutil chokes on.
     text_value = re.sub(r"(?<=\d)(st|nd|rd|th)\b", "", text_value, flags=re.I)
     try:

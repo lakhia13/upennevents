@@ -60,13 +60,18 @@ def validate_config(
     typer.echo(f"OK: {len(config.feeders)} feeders ({len(config.enabled_feeders())} enabled)")
     typer.echo(f"    types in use: {sorted({f.type for f in config.feeders})}")
     if unregistered:
+        # A hard failure, not a warning: run_feeder() (pipeline/runner.py) now
+        # raises on exactly this condition too, since a silently-unresolved
+        # registry_url produces events with no calendar_id/school_division.
+        # This check exists to catch it before anything ever tries to run.
         typer.secho(
-            f"WARNING: {len(unregistered)} feeders reference a registry_url with no "
+            f"FAILED: {len(unregistered)} feeders reference a registry_url with no "
             f"matching `calendars` row (run import-registry first):",
-            fg=typer.colors.YELLOW,
+            fg=typer.colors.RED,
         )
         for feeder_id, url in unregistered:
             typer.echo(f"    {feeder_id}: {url}")
+        raise typer.Exit(code=1)
 
 
 @app.command("run")

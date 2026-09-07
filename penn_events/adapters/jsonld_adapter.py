@@ -24,7 +24,11 @@ def _iter_event_nodes(document: object):
     for node in as_list(document.get("@graph")) if isinstance(document, dict) else as_list(document):
         node_type = node.get("@type") if isinstance(node, dict) else None
         types = as_list(node_type)
-        if any(str(t).lower() == "event" for t in types):
+        # schema.org subtypes (SportsEvent, MusicEvent, TheaterEvent, ...) all extend
+        # Event -- SIDEARM's team-schedule pages (pennathletics.com) emit bare
+        # `@type: "SportsEvent"` arrays with no plain "Event" node at all, so a
+        # same-as-"event" check alone would silently yield zero games.
+        if any(str(t).lower() == "event" or str(t).lower().endswith("event") for t in types):
             yield node
 
 

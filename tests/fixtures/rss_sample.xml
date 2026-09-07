@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sdo="http://schema.org/" version="2.0">
+  <channel>
+    <title>Arts &amp; Culture Events Feed</title>
+    <link>https://example.upenn.edu/</link>
+    <description>Example Events Feed</description>
+    <item>
+      <title>60-Second Lectures | Political Neutrality and Sociology</title>
+      <link>https://example.upenn.edu/events/60-second-lectures</link>
+      <pubDate>Mon, 17 Aug 2026 13:13:47 GMT</pubDate>
+      <dc:creator><![CDATA[agrier@upenn.edu]]></dc:creator>
+      <category><![CDATA[Arts & Culture]]></category>
+      <category><![CDATA[Lecture]]></category>
+      <guid isPermaLink="false">96f2e733-7e30-4bad-81ee-9a94ce0db64d</guid>
+      <content:encoded><![CDATA[<h4>The 60-Second Lectures are back!</h4><p><strong>Melissa J. Wilde</strong> will kick off the season.</p>]]></content:encoded>
+      <sdo:Event>
+        <sdo:name>60-Second Lectures | Political Neutrality and Sociology</sdo:name>
+        <sdo:startDate>2026-09-09T16:00:00Z</sdo:startDate>
+        <sdo:endDate/>
+      </sdo:Event>
+    </item>
+    <item>
+      <title>Model Republic: Why the American Founders Loved Ancient Carthage</title>
+      <link>https://example.upenn.edu/events/model-republic</link>
+      <pubDate>Wed, 26 Aug 2026 12:38:59 GMT</pubDate>
+      <category><![CDATA[Arts & Culture]]></category>
+      <guid isPermaLink="false">230ceaf5-7cbd-42a6-8ead-c9decf5939e8</guid>
+      <content:encoded><![CDATA[<p>Location: National Constitution Center, 525 Arch Street Philadelphia, PA 19106</p>]]></content:encoded>
+      <sdo:Event>
+        <sdo:name>Model Republic</sdo:name>
+        <sdo:startDate>2026-09-10T22:00:00Z</sdo:startDate>
+        <sdo:endDate>2026-09-11T00:00:00Z</sdo:endDate>
+      </sdo:Event>
+    </item>
+    <!-- No sdo:Event block at all -- must fall back to pubDate, not be dropped. -->
+    <item>
+      <title>Plain Item With No Structured Event Data</title>
+      <link>https://example.upenn.edu/events/plain-item</link>
+      <pubDate>Thu, 27 Aug 2026 09:00:00 GMT</pubDate>
+      <guid isPermaLink="false">plain-item-guid</guid>
+    </item>
+  </channel>
+</rss>
