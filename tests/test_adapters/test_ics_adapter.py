@@ -4,7 +4,10 @@ from __future__ import annotations
 import datetime as dt
 from pathlib import Path
 
+import pytest
+
 from penn_events.adapters.ics_adapter import IcsAdapter
+from penn_events.core.errors import AdaptError
 from penn_events.core.models import RawRecord
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
@@ -58,3 +61,18 @@ def test_rrule_expands_and_respects_exdate(ctx):
 def test_cancelled_status_is_preserved(ctx):
     events = {e.event_name: e for e in IcsAdapter().adapt(_record("synthetic.ics"), ctx)}
     assert events["Cancelled Talk"].status == "cancelled"
+
+
+def test_truncated_feed_recovers_complete_events_and_drops_the_partial_one(ctx):
+    """Modeled on a real, reproducible truncation seen live on Penn Law's LiveWhale
+    feed: no `END:VCALENDAR`, and the last `VEVENT` cut off mid-field. Everything
+    before the cut is well-formed and should not be lost.
+    """
+    events = {e.event_name: e for e in IcsAdapter().adapt(_record("truncated_sample.ics"), ctx)}
+    assert set(events) == {"Sentencing Makeup Class", "Lambda Halloween"}
+
+
+def test_feed_with_no_recoverable_events_still_raises(ctx):
+    record = RawRecord(format="ics", url="https://example.upenn.edu/garbage.ics", payload="not ics at all")
+    with pytest.raises(AdaptError):
+        list(IcsAdapter().adapt(record, ctx))

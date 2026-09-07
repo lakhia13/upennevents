@@ -11,5 +11,6 @@ from . import tec_rest  # noqa: F401,E402
 from . import jsonld  # noqa: F401,E402
 from . import html_css  # noqa: F401,E402
 from . import rss  # noqa: F401,E402
+from . import almanac  # noqa: F401,E402
 
 __all__ = ["FeederFactory", "known_types", "register_feeder"]

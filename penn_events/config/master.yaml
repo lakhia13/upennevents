@@ -31,6 +31,60 @@ feeders:
     config:
       url: https://ulife.vpul.upenn.edu/calendar/ics/subscribe
 
+  # --- LiveWhale: the Subscribe button's real feed URL is generated client-side, ---
+  # --- but it's not a per-site secret -- LiveWhale's own frontend JS            ---
+  # --- (calendar.rev.*.js, `getLink()`) builds it as a fixed pattern:           ---
+  # --- `<site-root>/live/ical/events` (config's `liveurl_dir` + `/ical/events`, ---
+  # --- read straight out of the minified bundle, not guessed). Confirmed live   ---
+  # --- for all three schools below (2026-09-07, after ingestion/RRULE           ---
+  # --- expansion): PSOM 421 events, Law 218 (of ~226 -- see ics_adapter's        ---
+  # --- truncation-repair note, a real upstream CDN bug on Law's feed, not ours), ---
+  # --- Nursing 57. Law's `/calendar/view/all` HTML page 403s at CloudFront for   ---
+  # --- any UA (bot-blocked, same as Annenberg/Penn Today -- not spoofing past    ---
+  # --- it), but this feed *path* is not behind that block and returns real data. ---
+  - id: psom-livewhale
+    type: ics
+    registry_url: https://events.med.upenn.edu/
+    host: Perelman School of Medicine
+    tags: [medicine]
+    config:
+      url: https://events.med.upenn.edu/live/ical/events
+
+  - id: law-livewhale
+    type: ics
+    registry_url: https://www.law.upenn.edu/calendar/
+    host: Penn Carey Law
+    tags: [law]
+    config:
+      url: https://www.law.upenn.edu/live/ical/events
+
+  - id: nursing-livewhale
+    type: ics
+    registry_url: https://www.nursing.upenn.edu/calendar/
+    host: School of Nursing
+    tags: [nursing]
+    config:
+      url: https://www.nursing.upenn.edu/live/ical/events
+
+  # --- Wharton: the registry's "School" row (www.wharton.upenn.edu/events/) is a  ---
+  # --- Salesforce Lightning widget with no server-rendered content or feed to    ---
+  # --- scrape (confirmed via view-source, still true, needs Playwright) -- but   ---
+  # --- that row's own notes point to groups.wharton.upenn.edu/events, a separate ---
+  # --- registry row for Wharton's real CampusGroups events, which has a genuine  ---
+  # --- ICS feed. Found by fetching the page's `/ics_helper?...&TB_context=       ---
+  # --- Subscribe_To_Calendars` modal (linked from its own "Subscribe" button)    ---
+  # --- and reading the aggregate feed URL out of its "Add to Google Calendar"    ---
+  # --- link -- 205 real events confirmed live (2026-09-07). This does not        ---
+  # --- resolve the literal www.wharton.upenn.edu/events/ row, but it does give   ---
+  # --- Wharton real event data under school_division=Wharton.                   ---
+  - id: wharton-campusgroups
+    type: ics
+    registry_url: https://groups.wharton.upenn.edu/events
+    host: The Wharton School
+    tags: [business]
+    config:
+      url: "https://groups.wharton.upenn.edu/ical/wharton/ical_wharton.ics?calid=2"
+
   # --- RSS: SAS's feed embeds a <sdo:Event> schema.org block per item with a  ---
   # --- real startDate/endDate, not just the item's publish date -- confirmed ---
   # --- live and preferred over <pubDate> by the adapter.                     ---
@@ -130,6 +184,28 @@ feeders:
       base_url: https://facultysenate.upenn.edu
       per_page: 50
 
+  # --- Almanac: bot-blocked at the nginx layer for any UA containing a         ---
+  # --- `(+http...)`-style contact URL (the conventional "polite crawler"       ---
+  # --- format) regardless of the rest of the string -- confirmed live,        ---
+  # --- 2026-09-07, by testing several UA variants; contradicted by the site's  ---
+  # --- own robots.txt (`User-agent: *`, `Crawl-delay: 10`, no bot disallow),   ---
+  # --- so this is a keyword/pattern false positive, not a deliberate block --  ---
+  # --- unlike Annenberg/Penn Today below, where the block holds even for an   ---
+  # --- exact Chrome UA. `user_agent` drops the URL but keeps a real,          ---
+  # --- contactable identity (see feeders/almanac.py). The page itself is not  ---
+  # --- a flat teaser list -- events are grouped into Bootstrap accordion      ---
+  # --- panels by category (Talks, Music, ...), each a <p> with a bold day-of- ---
+  # --- month that only appears on the first event of a day, so it needed a    ---
+  # --- bespoke feeder/adapter pair instead of `html_css`'s field selectors.   ---
+  - id: almanac-calendar
+    type: almanac_calendar
+    registry_url: https://almanac.upenn.edu/at-penn-calendar
+    host: University
+    tags: [university-wide]
+    config:
+      url: https://almanac.upenn.edu/at-penn-calendar
+      user_agent: "PennEventsMonitor/1.0 (contact: pranshav.lakhia@gmail.com)"
+
 # Deliberately not wired yet (each needs more than a plain HTTP GET to resolve):
 #
 #   - Penn Today (https://penntoday.upenn.edu/events) -- Drupal 11, but the host
@@ -144,29 +220,13 @@ feeders:
 #     past it, it's the same Playwright/Cloudflare-aware-fetch work as Penn
 #     Today.
 #
-#   - Wharton (https://www.wharton.upenn.edu/events/) -- confirmed via view-source
-#     that the page is a Salesforce "EventsHQ" widget
+#   - Wharton's own www.wharton.upenn.edu/events/ registry row -- confirmed via
+#     view-source that the page is a Salesforce "EventsHQ" widget
 #     (wharton.my.salesforce-sites.com/wevents/lightning/lightning.out.js)
 #     rendered entirely client-side; there is no server-rendered listing or feed
-#     to scrape. Needs the Playwright feeder.
-#
-#   - Almanac AT PENN (https://almanac.upenn.edu/at-penn-calendar) -- loads fine,
-#     but events sit inside nested Bootstrap accordion panels grouped by date,
-#     not a flat list of teasers. Needs selectors hand-tuned against the real
-#     panel structure before going in `html_css`, not guessed ones.
-#
-#   - LiveWhale sites -- PSOM (https://events.med.upenn.edu/all/), Penn Carey Law
-#     (https://www.law.upenn.edu/calendar/), Nursing
-#     (https://www.nursing.upenn.edu/calendar/) -- all confirm
-#     `"webcal_feed_links":"true"` but the actual .ics URL is generated
-#     client-side by the Subscribe button's JS; every guessed URL pattern
-#     (`/all/list/?format=ics`, `/live/ics/...`) 404s or returns the HTML shell,
-#     and a Playwright click on "Subscribe" (tried against PSOM) opened no
-#     visible link/modal in the captured network log either -- the real
-#     subscribe mechanism needs more investigation than a scripted click.
-#     Law and Nursing additionally redirect-loop on the bare `/calendar/` path;
-#     use `/calendar/view/all`. Once the real feed URL is found for one, the
-#     other two are the same fix.
+#     to scrape. Needs the Playwright feeder. (Real Wharton event data is wired
+#     via the `wharton-campusgroups` feeder above instead -- a different
+#     registry row for the same school, with a real feed.)
 #
 generators:
   # --- Athletics: SIDEARM's schedule pages (pennathletics.com/sports/<slug>/    ---

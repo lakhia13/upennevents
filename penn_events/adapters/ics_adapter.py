@@ -33,12 +33,36 @@ class IcsAdapter(Adapter):
         try:
             calendar = IcsCalendar.from_ical(record.payload)
         except (ValueError, TypeError) as exc:
-            raise AdaptError(f"{ctx.feeder_id}: not a valid ICS document ({exc})") from exc
+            calendar = self._repair_truncated(record.payload, exc, ctx)
 
         _, window_end = horizon(ctx.horizon_days)
 
         for component in calendar.walk("VEVENT"):
             yield from self._events_for(component, ctx, record, window_end)
+
+    @staticmethod
+    def _repair_truncated(payload: str, exc: Exception, ctx: FeedContext) -> IcsCalendar:
+        """Recover a feed that was cut off mid-transfer rather than dropping it whole.
+
+        Seen live on Penn Law's LiveWhale feed (2026-09-07): the response is missing
+        `END:VCALENDAR` and its last `VEVENT` is cut mid-field, reproducibly across
+        retries and cache-busting -- an upstream CDN caching bug, not a transient
+        network blip. Everything before the cut is well-formed RFC 5545, so trim back
+        to the last complete `END:VEVENT` and close the document there instead of
+        losing every event in the feed over one bad trailing record.
+        """
+        if "END:VCALENDAR" in payload:
+            raise AdaptError(f"{ctx.feeder_id}: not a valid ICS document ({exc})") from exc
+        cutoff = payload.rfind("END:VEVENT")
+        if cutoff == -1:
+            raise AdaptError(f"{ctx.feeder_id}: not a valid ICS document ({exc})") from exc
+        repaired = payload[: cutoff + len("END:VEVENT")] + "\r\nEND:VCALENDAR\r\n"
+        try:
+            calendar = IcsCalendar.from_ical(repaired)
+        except (ValueError, TypeError):
+            raise AdaptError(f"{ctx.feeder_id}: not a valid ICS document ({exc})") from exc
+        log.warning("%s: ICS feed was truncated mid-transfer; recovered events up to the cut", ctx.feeder_id)
+        return calendar
 
     def _events_for(self, component, ctx: FeedContext, record: RawRecord, window_end: dt.datetime):
         dtstart_prop = component.get("dtstart")
